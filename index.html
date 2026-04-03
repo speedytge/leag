@@ -1256,7 +1256,36 @@
             inv.splice(index, 1); save(); rInv();
         }
 
-        load();
+        function load() {
+            // 1. Сначала пытаемся взять баланс из URL (который прислал бот)
+            const urlParams = new URLSearchParams(window.location.search);
+            const balanceFromBot = urlParams.get('balance');
+
+            tg.CloudStorage.getItem('ld_data', (e, v) => {
+                if (v) {
+                    const d = JSON.parse(v);
+                    inv = d.i || [];
+                    tUrl = d.t || '';
+                    lastDaily = d.d || 0;
+                    subDone = d.s || false;
+
+                    // Если бот прислал баланс — берем его, если нет — из облака
+                    if (balanceFromBot !== null) {
+                        bal = parseInt(balanceFromBot);
+                    } else {
+                        bal = d.b || 0;
+                    }
+                } else if (balanceFromBot !== null) {
+                    bal = parseInt(balanceFromBot);
+                }
+
+                document.getElementById('stars').innerText = bal;
+                const uid = tg.initDataUnsafe.user ? tg.initDataUnsafe.user.id : 'guest';
+                document.getElementById('refLink').value = `https://t.me/LuckyCsDrop_bot?start=${uid}`;
+                updTasks();
+                save(); // Сохраняем актуальный баланс в облако
+            });
+        }
     </script>
 </body>
 
