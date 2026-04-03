@@ -1,0 +1,1104 @@
+<!DOCTYPE html>
+<html lang="ru">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="referrer" content="no-referrer">
+    <title>LuckyDrop Cosmic</title>
+    <script src="https://telegram.org/js/telegram-web-app.js"></script>
+    <style>
+        :root {
+            --bg: #090a0f;
+            --cbg: rgba(30, 41, 59, 0.7);
+            --acc: #3b82f6;
+            --ylw: #eab308;
+            --gry: #94a3b8;
+        }
+
+        body {
+            background: radial-gradient(ellipse at bottom, #1b2735 0%, #090a0f 100%);
+            color: #fff;
+            font-family: 'Segoe UI', sans-serif;
+            margin: 0;
+            padding: 15px;
+            padding-bottom: 90px;
+            min-height: 100vh;
+            background-attachment: fixed;
+        }
+
+        .stars {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: -1;
+            background: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="300" height="300"><circle cx="20" cy="20" r="1.5" fill="white" opacity="0.8"/><circle cx="150" cy="80" r="2" fill="white" opacity="0.5"/><circle cx="80" cy="200" r="1" fill="white" opacity="0.3"/><circle cx="250" cy="250" r="1.5" fill="white" opacity="0.6"/></svg>') repeat;
+            animation: twinkle 4s infinite alternate;
+        }
+
+        @keyframes twinkle {
+            0% {
+                opacity: 0.4
+            }
+
+            100% {
+                opacity: 1
+            }
+        }
+
+        .hidden {
+            display: none !important
+        }
+
+        .header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+            font-weight: bold;
+            font-size: 1.2rem;
+            text-shadow: 0 0 10px rgba(59, 130, 246, 0.8);
+        }
+
+        .balance {
+            background: rgba(0, 0, 0, 0.5);
+            padding: 8px 15px;
+            border-radius: 10px;
+            color: var(--ylw);
+            border: 1px solid rgba(234, 179, 8, 0.3);
+            box-shadow: 0 0 10px rgba(234, 179, 8, 0.2);
+        }
+
+        .btn {
+            background: var(--acc);
+            color: #fff;
+            border: none;
+            padding: 12px;
+            border-radius: 8px;
+            cursor: pointer;
+            width: 100%;
+            font-weight: bold;
+            margin-top: 5px;
+            text-transform: uppercase;
+            box-shadow: 0 0 15px rgba(59, 130, 246, 0.4);
+            transition: 0.2s;
+            box-sizing: border-box;
+        }
+
+        .btn:active {
+            transform: scale(0.95);
+            box-shadow: 0 0 5px rgba(59, 130, 246, 0.8);
+        }
+
+        .btn-ylw {
+            background: var(--ylw);
+            color: #000;
+            box-shadow: 0 0 15px rgba(234, 179, 8, 0.4);
+        }
+
+        .btn-grn {
+            background: #10b981;
+            color: #fff;
+            box-shadow: 0 0 15px rgba(16, 185, 129, 0.4);
+        }
+
+        .btn-out {
+            background: transparent;
+            border: 1px solid var(--gry);
+            color: #fff;
+            box-shadow: none;
+        }
+
+        .grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 10px
+        }
+
+        .card {
+            background: var(--cbg);
+            padding: 10px;
+            border-radius: 12px;
+            text-align: center;
+            border: 1px solid rgba(59, 130, 246, 0.3);
+            backdrop-filter: blur(5px);
+        }
+
+        .card img {
+            width: 100%;
+            height: 70px;
+            object-fit: contain;
+            filter: drop-shadow(0 0 5px rgba(255, 255, 255, 0.2));
+        }
+
+        .c-box {
+            background: var(--cbg);
+            border-radius: 12px;
+            padding: 15px;
+            margin-bottom: 15px;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(10px);
+            box-sizing: border-box;
+        }
+
+        .rl-box {
+            background: rgba(11, 17, 32, 0.8);
+            border: 2px solid var(--acc);
+            border-radius: 10px;
+            padding: 20px 0;
+            margin-bottom: 15px;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .rl-line {
+            display: flex;
+            transition: transform 4s cubic-bezier(0.1, 0.8, 0.2, 1)
+        }
+
+        .rl-item {
+            min-width: 90px;
+            height: 90px;
+            background: var(--cbg);
+            margin: 0 5px;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            border-radius: 8px;
+            border-bottom: 4px solid gray;
+            padding: 5px;
+            box-sizing: border-box;
+        }
+
+        .rl-item img {
+            width: 80%;
+            height: 40px;
+            object-fit: contain
+        }
+
+        .pointer {
+            position: absolute;
+            top: 0;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 2px;
+            height: 100%;
+            background: #ff3333;
+            z-index: 10;
+            box-shadow: 0 0 15px #ff3333;
+        }
+
+        .res-box {
+            text-align: center;
+            background: radial-gradient(circle, rgba(30, 41, 59, 0.9) 0%, rgba(15, 23, 42, 0.9) 70%);
+            padding: 20px 15px;
+            border-radius: 15px;
+            border: 2px solid var(--ylw);
+            box-shadow: 0 0 40px rgba(234, 179, 8, 0.3);
+            margin-bottom: 15px;
+        }
+
+        .nav {
+            display: flex;
+            justify-content: space-around;
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            background: rgba(15, 23, 42, 0.95);
+            padding: 10px 0;
+            border-top: 1px solid rgba(59, 130, 246, 0.3);
+            z-index: 100;
+            backdrop-filter: blur(10px);
+        }
+
+        .nav button {
+            background: none;
+            border: none;
+            color: var(--gry);
+            font-size: 10px;
+            cursor: pointer;
+            font-weight: bold;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            transition: 0.3s;
+            padding: 5px;
+        }
+
+        .nav button.act {
+            color: var(--acc);
+            transform: translateY(-3px);
+        }
+
+        .nav button span {
+            font-size: 18px;
+            margin-bottom: 4px;
+        }
+
+        .common {
+            border-color: #b0c3d9;
+            color: #b0c3d9;
+        }
+
+        .rare {
+            border-color: #4b69ff;
+            color: #4b69ff;
+        }
+
+        .epic {
+            border-color: #8847ff;
+            color: #8847ff;
+        }
+
+        .gold {
+            border-color: #ffd700;
+            color: #ffd700;
+        }
+
+        .secret {
+            border-color: #ff0055;
+            color: #ff0055;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="stars"></div>
+    <div class="header">
+        <div>🍀 LuckyDrop</div>
+        <div class="balance">★ <span id="stars">0</span></div>
+    </div>
+
+    <div id="previewArea" class="hidden">
+        <div class="c-box" style="padding-bottom:10px;">
+            <h2 id="pTitle" style="margin-top:0;text-align:center;text-transform:uppercase;">Кейс</h2>
+            <div id="rouletteArea" class="hidden rl-box">
+                <div class="pointer"></div>
+                <div class="rl-line" id="rlLine"></div>
+            </div>
+            <div id="resArea" class="hidden res-box">
+                <h3 style="margin:0;color:#fff;">Ваш дроп:</h3>
+                <div id="resGrid" style="display:flex;flex-wrap:wrap;justify-content:center;gap:10px;margin:15px 0;">
+                </div>
+                <span style="color:var(--ylw);font-weight:bold;font-size:18px;">Общая стоимость: ★ <span
+                        id="wPriceTotal">0</span></span><br><br>
+                <button class="btn btn-ylw" id="sellDropBtn" onclick="sellCurrentDrop()">Продать всё</button>
+                <button class="btn btn-grn" onclick="startRoulette()">Открыть еще раз</button>
+                <button class="btn btn-out" onclick="showSec('cases')">В инвентарь</button>
+            </div>
+            <div id="openControls">
+                <button class="btn btn-ylw" id="spinBtn" onclick="startRoulette()"
+                    style="padding:15px;font-size:16px;margin-bottom:15px;">КРУТИТЬ ЗА ★</button>
+                <div style="text-align:center;color:var(--gry);font-size:12px;margin-bottom:10px;">Содержимое:</div>
+                <div id="pList" style="max-height:200px;overflow-y:auto;padding-right:5px;margin-bottom:10px;"></div>
+                <button class="btn btn-out" onclick="showSec('cases')">Назад в магазин</button>
+            </div>
+        </div>
+    </div>
+
+    <div id="cases" class="sec">
+        <div class="grid" id="casesGrid">
+        </div>
+    </div>
+
+    <div id="inventory" class="sec hidden">
+        <h2 style="text-align:center;margin-top:0;">Твои скины</h2>
+        <div class="grid" id="iGrid"></div>
+    </div>
+    <div id="tasks" class="sec hidden">
+        <div class="c-box" style="text-align:center;">
+            <h3 style="color:#10b981;margin-top:0;">Пригласи друга</h3>
+            <p style="font-size:13px;color:var(--gry);">За каждого друга ты получишь <b>+50 ★</b>!<br>(Начисляется
+                ботом)</p>
+            <input type="text" id="refLink" readonly
+                style="width:100%;padding:12px;background:rgba(0,0,0,0.5);color:var(--acc);border:1px dashed var(--acc);border-radius:8px;text-align:center;margin-bottom:10px;">
+            <button class="btn btn-grn" onclick="copyRef()">Скопировать ссылку</button>
+        </div>
+    </div>
+    <div id="profile" class="sec hidden">
+        <div class="c-box">
+            <h3 style="margin-top:0;">Настройки Вывода</h3>
+            <input type="text" id="tUrl"
+                style="width:100%;padding:12px;margin-bottom:10px;background:rgba(0,0,0,0.5);color:#fff;border:1px solid rgba(255,255,255,0.2);border-radius:8px;"
+                placeholder="Steam Trade URL...">
+            <button class="btn btn-grn" onclick="saveUrl()">Сохранить ссылку</button>
+        </div>
+        <div class="c-box">
+            <h3 style="margin-top:0;">Пополнение ★</h3>
+            <button class="btn"
+                style="background:#28a745;margin-bottom:10px;display:flex;justify-content:space-between;"
+                onclick="buy(1000,15)"><span>1000 ★</span><b>15 XTR</b></button>
+            <button class="btn" style="background:#28a745;display:flex;justify-content:space-between;"
+                onclick="buy(5000,65)"><span>5000 ★</span><b>65 XTR</b></button>
+        </div>
+    </div>
+
+    <div class="nav">
+        <button id="n-cases" onclick="showSec('cases')" class="act"><span>📦</span>Кейсы</button>
+        <button id="n-inventory" onclick="showSec('inventory')"><span>🎒</span>Скины</button>
+        <button id="n-tasks" onclick="showSec('tasks')"><span>📋</span>Друзья</button>
+        <button id="n-profile" onclick="showSec('profile')"><span>👤</span>Профиль</button>
+    </div>
+
+    <script>
+        const tg = window.Telegram.WebApp;
+        tg.expand();
+        const iUrl = "https://steamcommunity-a.akamaihd.net/economy/image/";
+
+        // --- БАЗА КЕЙСОВ И СКИНОВ ---
+        const db = {
+            // 1. ЭКО КЕЙС (Окуп 30%. Цена: 50. 26 дешевых, 1 редкий)
+            eco: [
+                { name: 'P250 | Песчаная дюна', rarity: 'common', price: 2, w: 1000, img: iUrl + '-9a81dlWLwJ2UUGcVs_nsVtzdOEdtWwKGZZLQHTxDZ7I56KU0Zwwo4NUX4oFJZEHLbXH5ApeO4YmlhxYQknCRvCo04DEVlxkKgpopujwezhhwAMzcTFR09C_k4mClvnmJb_VlT1RsMhwj-zDo9j0hAawq0E9Z2r1JdTGdwU7ZwzRqVC5lrm60JO5vc7Pmns3pGB8stMvYt7U' },
+                { name: 'Glock-18 | Горелка', rarity: 'common', price: 3, w: 1000, img: iUrl + '-9a81dlWLwJ2UUGcVs_nsVtzdOEdtWwKGZZLQHTxDZ7I56KU0Zwwo4NUX4oFJZEHLbXH5ApeO4YmlhxYQknCRvCo04DEVlxkKgposbaqKAxf0v73dDBH_t26q4S0m_7zO6_ck29Y_cg_2-yQpYmi0FHg-kQ9Yjv0JoGddlU2MA3Z8lLqyOnpgZDt6Z3JzyAwuSIj5HuJlwv330_5p-Rviw' },
+                { name: 'MAC-10 | Пальма', rarity: 'common', price: 2, w: 1000, img: iUrl + '-9a81dlWLwJ2UUGcVs_nsVtzdOEdtWwKGZZLQHTxDZ7I56KU0Zwwo4NUX4oFJZEHLbXH5ApeO4YmlhxYQknCRvCo04DEVlxkKgoWeabqOANf-r-fFAzE2ci0mVW0m_7zO6_cmnhD-Ml0juz--YXygED6rUo4ZWvydoXAdFQ3aF7X-QC7krjug8PpuM-bmiNluCEr4SuMzBywiAYMMLK8kEtnwQ' },
+                { name: 'Tec-9 | Армейская сетка', rarity: 'common', price: 4, w: 1000, img: iUrl + '-9a81dlWLwJ2UUGcVs_nsVtzdOEdtWwKGZZLQHTxDZ7I56KU0Zwwo4NUX4oFJZEHLbXH5ApeO4YmlhxYQknCRvCo04DEVlxkKgoWeabqOANf-r-fFAzE2ci0m1-Gnvn8Oq_UmnhD-Ml0juz--YXygED6-UY6ZGv0cYOQd1M4NVnV_Va4xe25hp-0u53LnSdh7D5iuyisxxw-LgA1' },
+                { name: 'Nova | Хищник', rarity: 'common', price: 2, w: 1000, img: iUrl + '-9a81dlWLwJ2UUGcVs_nsVtzdOEdtWwKGZZLQHTxDZ7I56KU0Zwwo4NUX4oFJZEHLbXH5ApeO4YmlhxYQknCRvCo04DEVlxkKgpou7umeldf0Ob3fDxBvYyJi46Hk_7nI7DflWhR7MZ1iurEpdSn1AbkrRRoY2GldoScd1RraFiE_FLtxO-6jZPq6ZufzSA1s3Qm-z-DyP9rK2A' },
+                { name: 'SG 553 | Армейский блеск', rarity: 'common', price: 3, w: 1000, img: iUrl + '-9a81dlWLwJ2UUGcVs_nsVtzdOEdtWwKGZZLQHTxDZ7I56KU0Zwwo4NUX4oFJZEHLbXH5ApeO4YmlhxYQknCRvCo04DEVlxkKgoWeabqOANf-r-fFAzE2ci0m1-Gnvn8Oq_UmnhD-Ml0juz--YXygED6-UY6ZGv0cYOQd1M4NVnV_Va4xe25hp-0u53LnSdh7D5iuyisxxw-LgA1' },
+                { name: 'AUG | Наемник', rarity: 'common', price: 2, w: 1000, img: iUrl + '-9a81dlWLwJ2UUGcVs_nsVtzdOEdtWwKGZZLQHTxDZ7I56KU0Zwwo4NUX4oFJZEHLbXH5ApeO4YmlhxYQknCRvCo04DEVlxkKgoWeabqOANf-r-fFAzE2ci0m1-Gnvn8Oq_UmnhD-Ml0juz--YXygED6-UY6ZGv0cYOQd1M4NVnV_Va4xe25hp-0u53LnSdh7D5iuyisxxw-LgA1' },
+                { name: 'MP7 | Горностай', rarity: 'common', price: 5, w: 1000, img: iUrl + '-9a81dlWLwJ2UUGcVs_nsVtzdOEdtWwKGZZLQHTxDZ7I56KU0Zwwo4NUX4oFJZEHLbXH5ApeO4YmlhxYQknCRvCo04DEVlxkKgoWeabqOANf-r-fFAzE2ci0mVW0m_7zO6_cmnhD-Ml0juz--YXygED6rUo4ZWvydoXAdFQ3aF7X-QC7krjug8PpuM-bmiNluCEr4SuMzBywiAYMMLK8kEtnwQ' },
+                { name: 'P90 | Гроза', rarity: 'common', price: 4, w: 1000, img: iUrl + '-9a81dlWLwJ2UUGcVs_nsVtzdOEdtWwKGZZLQHTxDZ7I56KU0Zwwo4NUX4oFJZEHLbXH5ApeO4YmlhxYQknCRvCo04DEVlxkKgoWeabqOANf-r-fFAzE2ci0mVW0m_7zO6_cmnhD-Ml0juz--YXygED6rUo4ZWvydoXAdFQ3aF7X-QC7krjug8PpuM-bmiNluCEr4SuMzBywiAYMMLK8kEtnwQ' },
+                { name: 'Galil AR | Невозмутимость', rarity: 'common', price: 3, w: 1000, img: iUrl + '-9a81dlWLwJ2UUGcVs_nsVtzdOEdtWwKGZZLQHTxDZ7I56KU0Zwwo4NUX4oFJZEHLbXH5ApeO4YmlhxYQknCRvCo04DEVlxkKgoWeabqOANf-r-fFAzE2ci0m1-Gnvn8Oq_UmnhD-Ml0juz--YXygED6-UY6ZGv0cYOQd1M4NVnV_Va4xe25hp-0u53LnSdh7D5iuyisxxw-LgA1' },
+                { name: 'M249 | Укус аллигатора', rarity: 'common', price: 2, w: 1000, img: iUrl + '-9a81dlWLwJ2UUGcVs_nsVtzdOEdtWwKGZZLQHTxDZ7I56KU0Zwwo4NUX4oFJZEHLbXH5ApeO4YmlhxYQknCRvCo04DEVlxkKgoWeabqOANf-r-fFAzE2ci0m1-Gnvn8Oq_UmnhD-Ml0juz--YXygED6-UY6ZGv0cYOQd1M4NVnV_Va4xe25hp-0u53LnSdh7D5iuyisxxw-LgA1' },
+                { name: 'FAMAS | Выживший', rarity: 'common', price: 4, w: 1000, img: iUrl + '-9a81dlWLwJ2UUGcVs_nsVtzdOEdtWwKGZZLQHTxDZ7I56KU0Zwwo4NUX4oFJZEHLbXH5ApeO4YmlhxYQknCRvCo04DEVlxkKgoWeabqOANf-r-fFAzE2ci0mVW0m_7zO6_cmnhD-Ml0juz--YXygED6rUo4ZWvydoXAdFQ3aF7X-QC7krjug8PpuM-bmiNluCEr4SuMzBywiAYMMLK8kEtnwQ' },
+                { name: 'UMP-45 | Облучение', rarity: 'common', price: 3, w: 1000, img: iUrl + '-9a81dlWLwJ2UUGcVs_nsVtzdOEdtWwKGZZLQHTxDZ7I56KU0Zwwo4NUX4oFJZEHLbXH5ApeO4YmlhxYQknCRvCo04DEVlxkKgoWeabqOANf-r-fFAzE2ci0mVW0m_7zO6_cmnhD-Ml0juz--YXygED6rUo4ZWvydoXAdFQ3aF7X-QC7krjug8PpuM-bmiNluCEr4SuMzBywiAYMMLK8kEtnwQ' },
+                { name: 'PP-Bizon | Азарт', rarity: 'common', price: 2, w: 1000, img: iUrl + '-9a81dlWLwJ2UUGcVs_nsVtzdOEdtWwKGZZLQHTxDZ7I56KU0Zwwo4NUX4oFJZEHLbXH5ApeO4YmlhxYQknCRvCo04DEVlxkKgoWeabqOANf-r-fFAzE2ci0m1-Gnvn8Oq_UmnhD-Ml0juz--YXygED6-UY6ZGv0cYOQd1M4NVnV_Va4xe25hp-0u53LnSdh7D5iuyisxxw-LgA1' },
+                { name: 'MAG-7 | Жар', rarity: 'common', price: 3, w: 1000, img: iUrl + '-9a81dlWLwJ2UUGcVs_nsVtzdOEdtWwKGZZLQHTxDZ7I56KU0Zwwo4NUX4oFJZEHLbXH5ApeO4YmlhxYQknCRvCo04DEVlxkKgoWeabqOANf-r-fFAzE2ci0m1-Gnvn8Oq_UmnhD-Ml0juz--YXygED6-UY6ZGv0cYOQd1M4NVnV_Va4xe25hp-0u53LnSdh7D5iuyisxxw-LgA1' },
+                { name: 'Sawed-Off | Мозаика', rarity: 'common', price: 2, w: 1000, img: iUrl + '-9a81dlWLwJ2UUGcVs_nsVtzdOEdtWwKGZZLQHTxDZ7I56KU0Zwwo4NUX4oFJZEHLbXH5ApeO4YmlhxYQknCRvCo04DEVlxkKgoWeabqOANf-r-fFAzE2ci0mVW0m_7zO6_cmnhD-Ml0juz--YXygED6rUo4ZWvydoXAdFQ3aF7X-QC7krjug8PpuM-bmiNluCEr4SuMzBywiAYMMLK8kEtnwQ' },
+                { name: 'XM1014 | Слипстрим', rarity: 'common', price: 4, w: 1000, img: iUrl + '-9a81dlWLwJ2UUGcVs_nsVtzdOEdtWwKGZZLQHTxDZ7I56KU0Zwwo4NUX4oFJZEHLbXH5ApeO4YmlhxYQknCRvCo04DEVlxkKgoWeabqOANf-r-fFAzE2ci0m1-Gnvn8Oq_UmnhD-Ml0juz--YXygED6-UY6ZGv0cYOQd1M4NVnV_Va4xe25hp-0u53LnSdh7D5iuyisxxw-LgA1' },
+                { name: 'Dual Berettas | Подрядчик', rarity: 'common', price: 2, w: 1000, img: iUrl + '-9a81dlWLwJ2UUGcVs_nsVtzdOEdtWwKGZZLQHTxDZ7I56KU0Zwwo4NUX4oFJZEHLbXH5ApeO4YmlhxYQknCRvCo04DEVlxkKgoWeabqOANf-r-fFAzE2ci0m1-Gnvn8Oq_UmnhD-Ml0juz--YXygED6-UY6ZGv0cYOQd1M4NVnV_Va4xe25hp-0u53LnSdh7D5iuyisxxw-LgA1' },
+                { name: 'CZ75-Auto | Штамп', rarity: 'common', price: 3, w: 1000, img: iUrl + '-9a81dlWLwJ2UUGcVs_nsVtzdOEdtWwKGZZLQHTxDZ7I56KU0Zwwo4NUX4oFJZEHLbXH5ApeO4YmlhxYQknCRvCo04DEVlxkKgoWeabqOANf-r-fFAzE2ci0mVW0m_7zO6_cmnhD-Ml0juz--YXygED6rUo4ZWvydoXAdFQ3aF7X-QC7krjug8PpuM-bmiNluCEr4SuMzBywiAYMMLK8kEtnwQ' },
+                { name: 'R8 Revolver | Кованая кость', rarity: 'common', price: 4, w: 1000, img: iUrl + '-9a81dlWLwJ2UUGcVs_nsVtzdOEdtWwKGZZLQHTxDZ7I56KU0Zwwo4NUX4oFJZEHLbXH5ApeO4YmlhxYQknCRvCo04DEVlxkKgoWeabqOANf-r-fFAzE2ci0mVW0m_7zO6_cmnhD-Ml0juz--YXygED6rUo4ZWvydoXAdFQ3aF7X-QC7krjug8PpuM-bmiNluCEr4SuMzBywiAYMMLK8kEtnwQ' },
+                { name: 'Наклейка | Улыбка', rarity: 'common', price: 1, w: 1000, img: iUrl + '-9a81dlWLwJ2UUGcVs_nsVtzdOEdtWwKGZZLQHTxDZ7I56KU0Zwwo4NUX4oFJZEHLbXH5ApeO4YmlhxYQknCRvCo04DEVlxkKgoWeabqOANf-r-fFAzE2ci0m1-Gnvn8Oq_UmnhD-Ml0juz--YXygED6-UY6ZGv0cYOQd1M4NVnV_Va4xe25hp-0u53LnSdh7D5iuyisxxw-LgA1' },
+                { name: 'Наклейка | GG', rarity: 'common', price: 1, w: 1000, img: iUrl + '-9a81dlWLwJ2UUGcVs_nsVtzdOEdtWwKGZZLQHTxDZ7I56KU0Zwwo4NUX4oFJZEHLbXH5ApeO4YmlhxYQknCRvCo04DEVlxkKgoWeabqOANf-r-fFAzE2ci0m1-Gnvn8Oq_UmnhD-Ml0juz--YXygED6-UY6ZGv0cYOQd1M4NVnV_Va4xe25hp-0u53LnSdh7D5iuyisxxw-LgA1' },
+                { name: 'Наклейка | Огонь', rarity: 'common', price: 2, w: 1000, img: iUrl + '-9a81dlWLwJ2UUGcVs_nsVtzdOEdtWwKGZZLQHTxDZ7I56KU0Zwwo4NUX4oFJZEHLbXH5ApeO4YmlhxYQknCRvCo04DEVlxkKgoWeabqOANf-r-fFAzE2ci0mVW0m_7zO6_cmnhD-Ml0juz--YXygED6rUo4ZWvydoXAdFQ3aF7X-QC7krjug8PpuM-bmiNluCEr4SuMzBywiAYMMLK8kEtnwQ' },
+                { name: 'Граффити | Корона', rarity: 'common', price: 1, w: 1000, img: iUrl + '-9a81dlWLwJ2UUGcVs_nsVtzdOEdtWwKGZZLQHTxDZ7I56KU0Zwwo4NUX4oFJZEHLbXH5ApeO4YmlhxYQknCRvCo04DEVlxkKgoWeabqOANf-r-fFAzE2ci0mVW0m_7zO6_cmnhD-Ml0juz--YXygED6rUo4ZWvydoXAdFQ3aF7X-QC7krjug8PpuM-bmiNluCEr4SuMzBywiAYMMLK8kEtnwQ' },
+                { name: 'Граффити | Сердце', rarity: 'common', price: 1, w: 1000, img: iUrl + '-9a81dlWLwJ2UUGcVs_nsVtzdOEdtWwKGZZLQHTxDZ7I56KU0Zwwo4NUX4oFJZEHLbXH5ApeO4YmlhxYQknCRvCo04DEVlxkKgoWeabqOANf-r-fFAzE2ci0m1-Gnvn8Oq_UmnhD-Ml0juz--YXygED6-UY6ZGv0cYOQd1M4NVnV_Va4xe25hp-0u53LnSdh7D5iuyisxxw-LgA1' },
+                { name: 'Ключ от кейса', rarity: 'rare', price: 20, w: 200, img: iUrl + '-9a81dlWLwJ2UUGcVs_nsVtzdOEdtWwKGZZLQHTxDZ7I56KU0Zwwo4NUX4oFJZEHLbXH5ApeO4YmlhxYQknCRvCo04DEVlxkKgoWeabqOANf-r-fFAzE2ci0mVW0m_7zO6_cmnhD-Ml0juz--YXygED6rUo4ZWvydoXAdFQ3aF7X-QC7krjug8PpuM-bmiNluCEr4SuMzBywiAYMMLK8kEtnwQ' },
+                { name: 'M4A4 | Адское пламя', rarity: 'epic', price: 150, w: 10, img: iUrl + '-9a81dlWLwJ2UUGcVs_nsVtzdOEdtWwKGZZLQHTxDZ7I56KU0Zwwo4NUX4oFJZEHLbXH5ApeO4YmlhxYQknCRvCo04DEVlxkKgpou-6kejhjxszfjDFW-M6_hIW0mOX1N-Luhm5V18N0hf-WpInwi0GxqkMqMDivcY6XcAM3M12CqVm-xLjrhJG9ucicyHFkvCMq-z-DyK9O_-kQ' }
+            ],
+
+            // 2. ОБЫЧНЫЙ КЕЙС (Окуп 35%. Цена: 250. Середнячок)
+            normal: [
+                { name: 'AWP | Африканская сетка', rarity: 'common', price: 15, w: 800, img: iUrl + '-9a81dlWLwJ2UUGcVs_nsVtzdOEdtWwKGZZLQHTxDZ7I56KU0Zwwo4NUX4oFJZEHLbXH5ApeO4YmlhxYQknCRvCo04DEVlxkKgpot621FAR17PLfYQJD_9W7m5a0mvLwOq7c2D4G65xz0-2ZpNmti1fl_xVva1qwclc8cApvMInmDQa2yO_m0ZTtutjMmHVg7HYr-z-DyI4jCxsS' },
+                { name: 'AK-47 | Элитное снаряжение', rarity: 'common', price: 30, w: 800, img: iUrl + '-9a81dlWLwJ2UUGcVs_nsVtzdOEdtWwKGZZLQHTxDZ7I56KU0Zwwo4NUX4oFJZEHLbXH5ApeO4YmlhxYQknCRvCo04DEVlxkKgpot7HxfDhjxszJemkV09-5lpKKqPrxN7LEmyVQ7MEpiLuX8I-k3QXsqRVlZ2GlIYPBdwc4YlvR8gTqxebpg8W_vM-fmHdgvCUn4CndmQv3308mIukPGA' },
+                { name: 'M4A1-S | Взгляд в прошлое', rarity: 'common', price: 25, w: 800, img: iUrl + '-9a81dlWLwJ2UUGcVs_nsVtzdOEdtWwKGZZLQHTxDZ7I56KU0Zwwo4NUX4oFJZEHLbXH5ApeO4YmlhxYQknCRvCo04DEVlxkKgpou-6kcjhozezbDzhN09G_k4if2a_8ML_Wk1Rcw1RlvjnHptqki1Gy_kM9azqlcYSWJwE2Z1zT8wTswLy8hJHu7ZTNzSBk73Nw5nfVmhS1hxwfbeK5yQ' },
+                { name: 'Desert Eagle | Метеорит', rarity: 'common', price: 20, w: 800, img: iUrl + '-9a81dlWLwJ2UUGcVs_nsVtzdOEdtWwKGZZLQHTxDZ7I56KU0Zwwo4NUX4oFJZEHLbXH5ApeO4YmlhxYQknCRvCo04DEVlxkKgoWeabqOANf-r-fFAzE2ci0m1-Gnvn8Oq_UmnhD-Ml0juz--YXygED6-UY6ZGv0cYOQd1M4NVnV_Va4xe25hp-0u53LnSdh7D5iuyisxxw-LgA1' },
+                { name: 'Glock-18 | Лунная ночь', rarity: 'common', price: 25, w: 800, img: iUrl + '-9a81dlWLwJ2UUGcVs_nsVtzdOEdtWwKGZZLQHTxDZ7I56KU0Zwwo4NUX4oFJZEHLbXH5ApeO4YmlhxYQknCRvCo04DEVlxkKgposbaqKAxf0v73dDBH_t26q4S0m_7zO6_ck29Y_cg_2-yQpYmi0FHg-kQ9Yjv0JoGddlU2MA3Z8lLqyOnpgZDt6Z3JzyAwuSIj5HuJlwv330_5p-Rviw' },
+                { name: 'USP-S | Закрученный', rarity: 'common', price: 22, w: 800, img: iUrl + '-9a81dlWLwJ2UUGcVs_nsVtzdOEdtWwKGZZLQHTxDZ7I56KU0Zwwo4NUX4oFJZEHLbXH5ApeO4YmlhxYQknCRvCo04DEVlxkKgpoo6m1FBRp3_bGcTpN0924q4iOluHtfevVxzhTscYpjOqV8NmkigC280o6MWyicNXHdAQ2ZV3T8gToyOzrgp7ovpjMySNkpGB8snP8q3sA' },
+                { name: 'P250 | Сверхновая', rarity: 'common', price: 18, w: 800, img: iUrl + '-9a81dlWLwJ2UUGcVs_nsVtzdOEdtWwKGZZLQHTxDZ7I56KU0Zwwo4NUX4oFJZEHLbXH5ApeO4YmlhxYQknCRvCo04DEVlxkKgpopujwezhhwAMzcTFR09C_k4mClvnmJb_VlT1RsMhwj-zDo9j0hAawq0E9Z2r1JdTGdwU7ZwzRqVC5lrm60JO5vc7Pmns3pGB8stMvYt7U' },
+                { name: 'Tec-9 | Лавина', rarity: 'common', price: 20, w: 800, img: iUrl + '-9a81dlWLwJ2UUGcVs_nsVtzdOEdtWwKGZZLQHTxDZ7I56KU0Zwwo4NUX4oFJZEHLbXH5ApeO4YmlhxYQknCRvCo04DEVlxkKgoWeabqOANf-r-fFAzE2ci0m1-Gnvn8Oq_UmnhD-Ml0juz--YXygED6-UY6ZGv0cYOQd1M4NVnV_Va4xe25hp-0u53LnSdh7D5iuyisxxw-LgA1' },
+                { name: 'Five-SeveN | Обезьянье дело', rarity: 'common', price: 28, w: 800, img: iUrl + '-9a81dlWLwJ2UUGcVs_nsVtzdOEdtWwKGZZLQHTxDZ7I56KU0Zwwo4NUX4oFJZEHLbXH5ApeO4YmlhxYQknCRvCo04DEVlxkKgoWeabqOANf-r-fFAzE2ci0mVW0m_7zO6_cmnhD-Ml0juz--YXygED6rUo4ZWvydoXAdFQ3aF7X-QC7krjug8PpuM-bmiNluCEr4SuMzBywiAYMMLK8kEtnwQ' },
+                { name: 'MAC-10 | Неоновый гонщик', rarity: 'common', price: 35, w: 800, img: iUrl + '-9a81dlWLwJ2UUGcVs_nsVtzdOEdtWwKGZZLQHTxDZ7I56KU0Zwwo4NUX4oFJZEHLbXH5ApeO4YmlhxYQknCRvCo04DEVlxkKgoWeabqOANf-r-fFAzE2ci0m1-Gnvn8Oq_UmnhD-Ml0juz--YXygED6-UY6ZGv0cYOQd1M4NVnV_Va4xe25hp-0u53LnSdh7D5iuyisxxw-LgA1' },
+                { name: 'MP7 | Кровавый спорт', rarity: 'common', price: 30, w: 800, img: iUrl + '-9a81dlWLwJ2UUGcVs_nsVtzdOEdtWwKGZZLQHTxDZ7I56KU0Zwwo4NUX4oFJZEHLbXH5ApeO4YmlhxYQknCRvCo04DEVlxkKgoWeabqOANf-r-fFAzE2ci0mVW0m_7zO6_cmnhD-Ml0juz--YXygED6rUo4ZWvydoXAdFQ3aF7X-QC7krjug8PpuM-bmiNluCEr4SuMzBywiAYMMLK8kEtnwQ' },
+                { name: 'UMP-45 | Первобытный саблезуб', rarity: 'common', price: 25, w: 800, img: iUrl + '-9a81dlWLwJ2UUGcVs_nsVtzdOEdtWwKGZZLQHTxDZ7I56KU0Zwwo4NUX4oFJZEHLbXH5ApeO4YmlhxYQknCRvCo04DEVlxkKgoWeabqOANf-r-fFAzE2ci0m1-Gnvn8Oq_UmnhD-Ml0juz--YXygED6-UY6ZGv0cYOQd1M4NVnV_Va4xe25hp-0u53LnSdh7D5iuyisxxw-LgA1' },
+                { name: 'P90 | Азимов', rarity: 'common', price: 40, w: 800, img: iUrl + '-9a81dlWLwJ2UUGcVs_nsVtzdOEdtWwKGZZLQHTxDZ7I56KU0Zwwo4NUX4oFJZEHLbXH5ApeO4YmlhxYQknCRvCo04DEVlxkKgoWeabqOANf-r-fFAzE2ci0mVW0m_7zO6_cmnhD-Ml0juz--YXygED6rUo4ZWvydoXAdFQ3aF7X-QC7krjug8PpuM-bmiNluCEr4SuMzBywiAYMMLK8kEtnwQ' },
+                { name: 'PP-Bizon | Анубис', rarity: 'common', price: 15, w: 800, img: iUrl + '-9a81dlWLwJ2UUGcVs_nsVtzdOEdtWwKGZZLQHTxDZ7I56KU0Zwwo4NUX4oFJZEHLbXH5ApeO4YmlhxYQknCRvCo04DEVlxkKgoWeabqOANf-r-fFAzE2ci0m1-Gnvn8Oq_UmnhD-Ml0juz--YXygED6-UY6ZGv0cYOQd1M4NVnV_Va4xe25hp-0u53LnSdh7D5iuyisxxw-LgA1' },
+                { name: 'Galil AR | Цербер', rarity: 'common', price: 28, w: 800, img: iUrl + '-9a81dlWLwJ2UUGcVs_nsVtzdOEdtWwKGZZLQHTxDZ7I56KU0Zwwo4NUX4oFJZEHLbXH5ApeO4YmlhxYQknCRvCo04DEVlxkKgoWeabqOANf-r-fFAzE2ci0mVW0m_7zO6_cmnhD-Ml0juz--YXygED6rUo4ZWvydoXAdFQ3aF7X-QC7krjug8PpuM-bmiNluCEr4SuMzBywiAYMMLK8kEtnwQ' },
+                { name: 'FAMAS | Механо-пушка', rarity: 'common', price: 32, w: 800, img: iUrl + '-9a81dlWLwJ2UUGcVs_nsVtzdOEdtWwKGZZLQHTxDZ7I56KU0Zwwo4NUX4oFJZEHLbXH5ApeO4YmlhxYQknCRvCo04DEVlxkKgoWeabqOANf-r-fFAzE2ci0m1-Gnvn8Oq_UmnhD-Ml0juz--YXygED6-UY6ZGv0cYOQd1M4NVnV_Va4xe25hp-0u53LnSdh7D5iuyisxxw-LgA1' },
+                { name: 'SSG 08 | Пучина', rarity: 'common', price: 12, w: 800, img: iUrl + '-9a81dlWLwJ2UUGcVs_nsVtzdOEdtWwKGZZLQHTxDZ7I56KU0Zwwo4NUX4oFJZEHLbXH5ApeO4YmlhxYQknCRvCo04DEVlxkKgoWeabqOANf-r-fFAzE2ci0mVW0m_7zO6_cmnhD-Ml0juz--YXygED6rUo4ZWvydoXAdFQ3aF7X-QC7krjug8PpuM-bmiNluCEr4SuMzBywiAYMMLK8kEtnwQ' },
+                { name: 'AUG | Хамелеон', rarity: 'common', price: 35, w: 800, img: iUrl + '-9a81dlWLwJ2UUGcVs_nsVtzdOEdtWwKGZZLQHTxDZ7I56KU0Zwwo4NUX4oFJZEHLbXH5ApeO4YmlhxYQknCRvCo04DEVlxkKgoWeabqOANf-r-fFAzE2ci0m1-Gnvn8Oq_UmnhD-Ml0juz--YXygED6-UY6ZGv0cYOQd1M4NVnV_Va4xe25hp-0u53LnSdh7D5iuyisxxw-LgA1' },
+                { name: 'SG 553 | Сайрекс', rarity: 'common', price: 25, w: 800, img: iUrl + '-9a81dlWLwJ2UUGcVs_nsVtzdOEdtWwKGZZLQHTxDZ7I56KU0Zwwo4NUX4oFJZEHLbXH5ApeO4YmlhxYQknCRvCo04DEVlxkKgoWeabqOANf-r-fFAzE2ci0mVW0m_7zO6_cmnhD-Ml0juz--YXygED6rUo4ZWvydoXAdFQ3aF7X-QC7krjug8PpuM-bmiNluCEr4SuMzBywiAYMMLK8kEtnwQ' },
+                { name: 'Nova | Скоростной зверь', rarity: 'common', price: 40, w: 800, img: iUrl + '-9a81dlWLwJ2UUGcVs_nsVtzdOEdtWwKGZZLQHTxDZ7I56KU0Zwwo4NUX4oFJZEHLbXH5ApeO4YmlhxYQknCRvCo04DEVlxkKgoWeabqOANf-r-fFAzE2ci0m1-Gnvn8Oq_UmnhD-Ml0juz--YXygED6-UY6ZGv0cYOQd1M4NVnV_Va4xe25hp-0u53LnSdh7D5iuyisxxw-LgA1' },
+
+                // 5 редких (синих/фиолетовых)
+                { name: 'M4A4 | Безлюдный космос', rarity: 'rare', price: 90, w: 100, img: iUrl + '-9a81dlWLwJ2UUGcVs_nsVtzdOEdtWwKGZZLQHTxDZ7I56KU0Zwwo4NUX4oFJZEHLbXH5ApeO4YmlhxYQknCRvCo04DEVlxkKgpou-6kejhjxszfjDFW-M6_hIW0mOX1N-Luhm5V18N0hf-WpInwi0GxqkMqMDivcY6XcAM3M12CqVm-xLjrhJG9ucicyHFkvCMq-z-DyK9O_-kQ' },
+                { name: 'AK-47 | Снежный вихрь', rarity: 'rare', price: 110, w: 80, img: iUrl + '-9a81dlWLwJ2UUGcVs_nsVtzdOEdtWwKGZZLQHTxDZ7I56KU0Zwwo4NUX4oFJZEHLbXH5ApeO4YmlhxYQknCRvCo04DEVlxkKgpot7HxfDhjxszJemkV09-5lpKKqPrxN7LEmyVQ7MEpiLuX8I-k3QXsqRVlZ2GlIYPBdwc4YlvR8gTqxebpg8W_vM-fmHdgvCUn4CndmQv3308mIukPGA' },
+                { name: 'AWP | Древесная гадюка', rarity: 'rare', price: 130, w: 80, img: iUrl + '-9a81dlWLwJ2UUGcVs_nsVtzdOEdtWwKGZZLQHTxDZ7I56KU0Zwwo4NUX4oFJZEHLbXH5ApeO4YmlhxYQknCRvCo04DEVlxkKgpot621FAR17PLfYQJD_9W7m5a0mvLwOq7c2D4G65xz0-2ZpNmti1fl_xVva1qwclc8cApvMInmDQa2yO_m0ZTtutjMmHVg7HYr-z-DyI4jCxsS' },
+                { name: 'USP-S | Неонуар', rarity: 'rare', price: 120, w: 80, img: iUrl + '-9a81dlWLwJ2UUGcVs_nsVtzdOEdtWwKGZZLQHTxDZ7I56KU0Zwwo4NUX4oFJZEHLbXH5ApeO4YmlhxYQknCRvCo04DEVlxkKgpoo6m1FBRp3_bGcTpN0924q4iOluHtfevVxzhTscYpjOqV8NmkigC280o6MWyicNXHdAQ2ZV3T8gToyOzrgp7ovpjMySNkpGB8snP8q3sA' },
+                { name: 'Glock-18 | Дух воды', rarity: 'rare', price: 80, w: 100, img: iUrl + '-9a81dlWLwJ2UUGcVs_nsVtzdOEdtWwKGZZLQHTxDZ7I56KU0Zwwo4NUX4oFJZEHLbXH5ApeO4YmlhxYQknCRvCo04DEVlxkKgposbaqKAxf0v73dDBH_t26q4S0m_7zO6_ck29Y_cg_2-yQpYmi0FHg-kQ9Yjv0JoGddlU2MA3Z8lLqyOnpgZDt6Z3JzyAwuSIj5HuJlwv330_5p-Rviw' },
+
+                // 2 красных
+                { name: 'AK-47 | Вулкан', rarity: 'epic', price: 1200, w: 5, img: iUrl + '-9a81dlWLwJ2UUGcVs_nsVtzdOEdtWwKGZZLQHTxDZ7I56KU0Zwwo4NUX4oFJZEHLbXH5ApeO4YmlhxYQknCRvCo04DEVlxkKgpot7HxfDhjxszJemkV09-5lpKKqPrxN7LEmyVQ7MEpiLuX8I-k3QXsqRVlZ2GlIYPBdwc4YlvR8gTqxebpg8W_vM-fmHdgvCUn4CndmQv3308mIukPGA' },
+                { name: 'AWP | Азимов', rarity: 'gold', price: 2000, w: 2, img: iUrl + '-9a81dlWLwJ2UUGcVs_nsVtzdOEdtWwKGZZLQHTxDZ7I56KU0Zwwo4NUX4oFJZEHLbXH5ApeO4YmlhxYQknCRvCo04DEVlxkKgpot621FAR17PLfYQJD_9W7m5a0mvLwOq7c2D4G65xz0-2ZpNmti1fl_xVva1qwclc8cApvMInmDQa2yO_m0ZTtutjMmHVg7HYr-z-DyI4jCxsS' }
+            ],
+
+            // 3. НОЖЕВОЙ КЕЙС (Ловушка. Цена: 2500. 25 дешевых, 2 дорогих)
+            knife: [
+                // 25 ширп-ножей, которые уводят в минус (цена 300-600)
+                { name: 'Наваха | Пыльник', rarity: 'common', price: 300, w: 500, img: iUrl + '-9a81dlWLwJ2UUGcVs_nsVtzdOEdtWwKGZZLQHTxDZ7I56KU0Zwwo4NUX4oFJZEHLbXH5ApeO4YmlhxYQknCRvCo04DEVlxkKgpovbSsLQJf0OP3fTgQ5dKyq4iOqPv9NLPF2DwEuZdw2LyTpNyh3QGxq0JpM22mddKRdg4-aA3T_Fe5xr-5gZ_quZqcmHM2vycg4H2ImB210wYMMLInH7rVQQ' },
+                { name: 'Тычки | Африканская сетка', rarity: 'common', price: 320, w: 500, img: iUrl + '-9a81dlWLwJ2UUGcVs_nsVtzdOEdtWwKGZZLQHTxDZ7I56KU0Zwwo4NUX4oFJZEHLbXH5ApeO4YmlhxYQknCRvCo04DEVlxkKgpovbSsLQJf1OrYYiRx09__kY-Fhfb5MrTcxT1Su5B1jLqS89-s2VHkqEM9MTvwcYXBdwZvZF-D_gLql-bs15-9tZiamCFhvD5iuyiv0L0o8g' },
+                { name: 'Нож с лезвием-крюком | Патина', rarity: 'common', price: 400, w: 500, img: iUrl + '-9a81dlWLwJ2UUGcVs_nsVtzdOEdtWwKGZZLQHTxDZ7I56KU0Zwwo4NUX4oFJZEHLbXH5ApeO4YmlhxYQknCRvCo04DEVlxkKgpovbSsLQJf0OP3fTgQ5dKyq4iOqPv9NLPF2DwEuZdw2LyTpNyh3QGxq0JpM22mddKRdg4-aA3T_Fe5xr-5gZ_quZqcmHM2vycg4H2ImB210wYMMLInH7rVQQ' },
+                { name: 'Фальшион | Пиксельный камуфляж', rarity: 'common', price: 450, w: 500, img: iUrl + '-9a81dlWLwJ2UUGcVs_nsVtzdOEdtWwKGZZLQHTxDZ7I56KU0Zwwo4NUX4oFJZEHLbXH5ApeO4YmlhxYQknCRvCo04DEVlxkKgpovbSsLQJf1OrYYiRx09__kY-Fhfb5MrTcxT1Su5B1jLqS89-s2VHkqEM9MTvwcYXBdwZvZF-D_gLql-bs15-9tZiamCFhvD5iuyiv0L0o8g' },
+                { name: 'Нож Боуи | Северный лес', rarity: 'common', price: 500, w: 500, img: iUrl + '-9a81dlWLwJ2UUGcVs_nsVtzdOEdtWwKGZZLQHTxDZ7I56KU0Zwwo4NUX4oFJZEHLbXH5ApeO4YmlhxYQknCRvCo04DEVlxkKgpovbSsLQJf0OP3fTgQ5dKyq4iOqPv9NLPF2DwEuZdw2LyTpNyh3QGxq0JpM22mddKRdg4-aA3T_Fe5xr-5gZ_quZqcmHM2vycg4H2ImB210wYMMLInH7rVQQ' },
+                { name: 'Охотничий нож | Сажа', rarity: 'common', price: 420, w: 500, img: iUrl + '-9a81dlWLwJ2UUGcVs_nsVtzdOEdtWwKGZZLQHTxDZ7I56KU0Zwwo4NUX4oFJZEHLbXH5ApeO4YmlhxYQknCRvCo04DEVlxkKgpovbSsLQJf1OrYYiRx09__kY-Fhfb5MrTcxT1Su5B1jLqS89-s2VHkqEM9MTvwcYXBdwZvZF-D_gLql-bs15-9tZiamCFhvD5iuyiv0L0o8g' },
+                { name: 'Наваха | Городская маскировка', rarity: 'common', price: 310, w: 500, img: iUrl + '-9a81dlWLwJ2UUGcVs_nsVtzdOEdtWwKGZZLQHTxDZ7I56KU0Zwwo4NUX4oFJZEHLbXH5ApeO4YmlhxYQknCRvCo04DEVlxkKgpovbSsLQJf0OP3fTgQ5dKyq4iOqPv9NLPF2DwEuZdw2LyTpNyh3QGxq0JpM22mddKRdg4-aA3T_Fe5xr-5gZ_quZqcmHM2vycg4H2ImB210wYMMLInH7rVQQ' },
+                { name: 'Тычки | Пиксельный камуфляж', rarity: 'common', price: 340, w: 500, img: iUrl + '-9a81dlWLwJ2UUGcVs_nsVtzdOEdtWwKGZZLQHTxDZ7I56KU0Zwwo4NUX4oFJZEHLbXH5ApeO4YmlhxYQknCRvCo04DEVlxkKgpovbSsLQJf1OrYYiRx09__kY-Fhfb5MrTcxT1Su5B1jLqS89-s2VHkqEM9MTvwcYXBdwZvZF-D_gLql-bs15-9tZiamCFhvD5iuyiv0L0o8g' },
+                { name: 'Нож с лезвием-крюком | Сажа', rarity: 'common', price: 390, w: 500, img: iUrl + '-9a81dlWLwJ2UUGcVs_nsVtzdOEdtWwKGZZLQHTxDZ7I56KU0Zwwo4NUX4oFJZEHLbXH5ApeO4YmlhxYQknCRvCo04DEVlxkKgpovbSsLQJf0OP3fTgQ5dKyq4iOqPv9NLPF2DwEuZdw2LyTpNyh3QGxq0JpM22mddKRdg4-aA3T_Fe5xr-5gZ_quZqcmHM2vycg4H2ImB210wYMMLInH7rVQQ' },
+                { name: 'Фальшион | Африканская сетка', rarity: 'common', price: 410, w: 500, img: iUrl + '-9a81dlWLwJ2UUGcVs_nsVtzdOEdtWwKGZZLQHTxDZ7I56KU0Zwwo4NUX4oFJZEHLbXH5ApeO4YmlhxYQknCRvCo04DEVlxkKgpovbSsLQJf1OrYYiRx09__kY-Fhfb5MrTcxT1Su5B1jLqS89-s2VHkqEM9MTvwcYXBdwZvZF-D_gLql-bs15-9tZiamCFhvD5iuyiv0L0o8g' },
+                { name: 'Нож Боуи | Африканская сетка', rarity: 'common', price: 460, w: 500, img: iUrl + '-9a81dlWLwJ2UUGcVs_nsVtzdOEdtWwKGZZLQHTxDZ7I56KU0Zwwo4NUX4oFJZEHLbXH5ApeO4YmlhxYQknCRvCo04DEVlxkKgpovbSsLQJf0OP3fTgQ5dKyq4iOqPv9NLPF2DwEuZdw2LyTpNyh3QGxq0JpM22mddKRdg4-aA3T_Fe5xr-5gZ_quZqcmHM2vycg4H2ImB210wYMMLInH7rVQQ' },
+                { name: 'Охотничий нож | Северный лес', rarity: 'common', price: 440, w: 500, img: iUrl + '-9a81dlWLwJ2UUGcVs_nsVtzdOEdtWwKGZZLQHTxDZ7I56KU0Zwwo4NUX4oFJZEHLbXH5ApeO4YmlhxYQknCRvCo04DEVlxkKgpovbSsLQJf1OrYYiRx09__kY-Fhfb5MrTcxT1Su5B1jLqS89-s2VHkqEM9MTvwcYXBdwZvZF-D_gLql-bs15-9tZiamCFhvD5iuyiv0L0o8g' },
+                { name: 'Наваха | Ночная полоса', rarity: 'common', price: 330, w: 500, img: iUrl + '-9a81dlWLwJ2UUGcVs_nsVtzdOEdtWwKGZZLQHTxDZ7I56KU0Zwwo4NUX4oFJZEHLbXH5ApeO4YmlhxYQknCRvCo04DEVlxkKgpovbSsLQJf0OP3fTgQ5dKyq4iOqPv9NLPF2DwEuZdw2LyTpNyh3QGxq0JpM22mddKRdg4-aA3T_Fe5xr-5gZ_quZqcmHM2vycg4H2ImB210wYMMLInH7rVQQ' },
+                { name: 'Тычки | Северный лес', rarity: 'common', price: 350, w: 500, img: iUrl + '-9a81dlWLwJ2UUGcVs_nsVtzdOEdtWwKGZZLQHTxDZ7I56KU0Zwwo4NUX4oFJZEHLbXH5ApeO4YmlhxYQknCRvCo04DEVlxkKgpovbSsLQJf1OrYYiRx09__kY-Fhfb5MrTcxT1Su5B1jLqS89-s2VHkqEM9MTvwcYXBdwZvZF-D_gLql-bs15-9tZiamCFhvD5iuyiv0L0o8g' },
+                { name: 'Нож с лезвием-крюком | Городская маскировка', rarity: 'common', price: 380, w: 500, img: iUrl + '-9a81dlWLwJ2UUGcVs_nsVtzdOEdtWwKGZZLQHTxDZ7I56KU0Zwwo4NUX4oFJZEHLbXH5ApeO4YmlhxYQknCRvCo04DEVlxkKgpovbSsLQJf0OP3fTgQ5dKyq4iOqPv9NLPF2DwEuZdw2LyTpNyh3QGxq0JpM22mddKRdg4-aA3T_Fe5xr-5gZ_quZqcmHM2vycg4H2ImB210wYMMLInH7rVQQ' },
+                { name: 'Фальшион | Северный лес', rarity: 'common', price: 420, w: 500, img: iUrl + '-9a81dlWLwJ2UUGcVs_nsVtzdOEdtWwKGZZLQHTxDZ7I56KU0Zwwo4NUX4oFJZEHLbXH5ApeO4YmlhxYQknCRvCo04DEVlxkKgpovbSsLQJf1OrYYiRx09__kY-Fhfb5MrTcxT1Su5B1jLqS89-s2VHkqEM9MTvwcYXBdwZvZF-D_gLql-bs15-9tZiamCFhvD5iuyiv0L0o8g' },
+                { name: 'Нож Боуи | Пиксельный камуфляж', rarity: 'common', price: 480, w: 500, img: iUrl + '-9a81dlWLwJ2UUGcVs_nsVtzdOEdtWwKGZZLQHTxDZ7I56KU0Zwwo4NUX4oFJZEHLbXH5ApeO4YmlhxYQknCRvCo04DEVlxkKgpovbSsLQJf0OP3fTgQ5dKyq4iOqPv9NLPF2DwEuZdw2LyTpNyh3QGxq0JpM22mddKRdg4-aA3T_Fe5xr-5gZ_quZqcmHM2vycg4H2ImB210wYMMLInH7rVQQ' },
+                { name: 'Охотничий нож | Пиксельный камуфляж', rarity: 'common', price: 430, w: 500, img: iUrl + '-9a81dlWLwJ2UUGcVs_nsVtzdOEdtWwKGZZLQHTxDZ7I56KU0Zwwo4NUX4oFJZEHLbXH5ApeO4YmlhxYQknCRvCo04DEVlxkKgpovbSsLQJf1OrYYiRx09__kY-Fhfb5MrTcxT1Su5B1jLqS89-s2VHkqEM9MTvwcYXBdwZvZF-D_gLql-bs15-9tZiamCFhvD5iuyiv0L0o8g' },
+                { name: 'Наваха | Африканская сетка', rarity: 'common', price: 290, w: 500, img: iUrl + '-9a81dlWLwJ2UUGcVs_nsVtzdOEdtWwKGZZLQHTxDZ7I56KU0Zwwo4NUX4oFJZEHLbXH5ApeO4YmlhxYQknCRvCo04DEVlxkKgpovbSsLQJf0OP3fTgQ5dKyq4iOqPv9NLPF2DwEuZdw2LyTpNyh3QGxq0JpM22mddKRdg4-aA3T_Fe5xr-5gZ_quZqcmHM2vycg4H2ImB210wYMMLInH7rVQQ' },
+                { name: 'Тычки | Сажа', rarity: 'common', price: 330, w: 500, img: iUrl + '-9a81dlWLwJ2UUGcVs_nsVtzdOEdtWwKGZZLQHTxDZ7I56KU0Zwwo4NUX4oFJZEHLbXH5ApeO4YmlhxYQknCRvCo04DEVlxkKgpovbSsLQJf1OrYYiRx09__kY-Fhfb5MrTcxT1Su5B1jLqS89-s2VHkqEM9MTvwcYXBdwZvZF-D_gLql-bs15-9tZiamCFhvD5iuyiv0L0o8g' },
+                { name: 'Нож с лезвием-крюком | Пиксельный камуфляж', rarity: 'common', price: 370, w: 500, img: iUrl + '-9a81dlWLwJ2UUGcVs_nsVtzdOEdtWwKGZZLQHTxDZ7I56KU0Zwwo4NUX4oFJZEHLbXH5ApeO4YmlhxYQknCRvCo04DEVlxkKgpovbSsLQJf0OP3fTgQ5dKyq4iOqPv9NLPF2DwEuZdw2LyTpNyh3QGxq0JpM22mddKRdg4-aA3T_Fe5xr-5gZ_quZqcmHM2vycg4H2ImB210wYMMLInH7rVQQ' },
+                { name: 'Фальшион | Сажа', rarity: 'common', price: 400, w: 500, img: iUrl + '-9a81dlWLwJ2UUGcVs_nsVtzdOEdtWwKGZZLQHTxDZ7I56KU0Zwwo4NUX4oFJZEHLbXH5ApeO4YmlhxYQknCRvCo04DEVlxkKgpovbSsLQJf1OrYYiRx09__kY-Fhfb5MrTcxT1Su5B1jLqS89-s2VHkqEM9MTvwcYXBdwZvZF-D_gLql-bs15-9tZiamCFhvD5iuyiv0L0o8g' },
+                { name: 'Нож Боуи | Сажа', rarity: 'common', price: 470, w: 500, img: iUrl + '-9a81dlWLwJ2UUGcVs_nsVtzdOEdtWwKGZZLQHTxDZ7I56KU0Zwwo4NUX4oFJZEHLbXH5ApeO4YmlhxYQknCRvCo04DEVlxkKgpovbSsLQJf0OP3fTgQ5dKyq4iOqPv9NLPF2DwEuZdw2LyTpNyh3QGxq0JpM22mddKRdg4-aA3T_Fe5xr-5gZ_quZqcmHM2vycg4H2ImB210wYMMLInH7rVQQ' },
+                { name: 'Охотничий нож | Африканская сетка', rarity: 'common', price: 410, w: 500, img: iUrl + '-9a81dlWLwJ2UUGcVs_nsVtzdOEdtWwKGZZLQHTxDZ7I56KU0Zwwo4NUX4oFJZEHLbXH5ApeO4YmlhxYQknCRvCo04DEVlxkKgpovbSsLQJf1OrYYiRx09__kY-Fhfb5MrTcxT1Su5B1jLqS89-s2VHkqEM9MTvwcYXBdwZvZF-D_gLql-bs15-9tZiamCFhvD5iuyiv0L0o8g' },
+                { name: 'Наваха | Пиксельный камуфляж', rarity: 'common', price: 320, w: 500, img: iUrl + '-9a81dlWLwJ2UUGcVs_nsVtzdOEdtWwKGZZLQHTxDZ7I56KU0Zwwo4NUX4oFJZEHLbXH5ApeO4YmlhxYQknCRvCo04DEVlxkKgpovbSsLQJf0OP3fTgQ5dKyq4iOqPv9NLPF2DwEuZdw2LyTpNyh3QGxq0JpM22mddKRdg4-aA3T_Fe5xr-5gZ_quZqcmHM2vycg4H2ImB210wYMMLInH7rVQQ' },
+
+                // 2 топ-ножа (очень редкий окуп)
+                { name: 'Нож-бабочка | Градиент', rarity: 'gold', price: 20000, w: 2, img: iUrl + '-9a81dlWLwJ2UUGcVs_nsVtzdOEdtWwKGZZLQHTxDZ7I56KU0Zwwo4NUX4oFJZEHLbXH5ApeO4YmlhxYQknCRvCo04DEVlxkKgpovbSsLQJf2OTEcgFO_c-1mY-DkvbiM7_Sl29U18l4jeHVu43zjAex_UQ9az_xd4SVI1c3aFrQrFS8le2-gMK97c_InHpqsykgtH6OlhC-1B0eb7NshqWACQLJDgY1U1w' },
+                { name: 'Керамбит | Волны', rarity: 'gold', price: 25000, w: 1, img: iUrl + '-9a81dlWLwJ2UUGcVs_nsVtzdOEdtWwKGZZLQHTxDZ7I56KU0Zwwo4NUX4oFJZEHLbXH5ApeO4YmlhxYQknCRvCo04DEVlxkKgpovbSsLQJf2OTEcgFO_c-1mY-DkvbiM7_Sl29U18l4jeHVu43zjAex_UQ9az_xd4SVI1c3aFrQrFS8le2-gMK97c_InHpqsykgtH6OlhC-1B0eb7NshqWACQLJDgY1U1w' }
+            ],
+            // 4. СНАЙПЕРСКИЙ КЕЙС (Окуп 15%. Цена: 400)
+            sniper: [
+                // 20 дешевых снайперок
+                { name: 'SSG 08 | Голубая хвоя', rarity: 'common', price: 5, w: 800, img: iUrl + '-9a81dlWLwJ2UUGcVs_nsVtzdOEdtWwKGZZLQHTxDZ7I56KU0Zwwo4NUX4oFJZEHLbXH5ApeO4YmlhxYQknCRvCo04DEVlxkKgoWeabqOANf-r-fFAzE2ci0m1-Gnvn8Oq_UmnhD-Ml0juz--YXygED6-UY6ZGv0cYOQd1M4NVnV_Va4xe25hp-0u53LnSdh7D5iuyisxxw-LgA1' },
+                { name: 'AWP | Африканская сетка', rarity: 'common', price: 20, w: 800, img: iUrl + '-9a81dlWLwJ2UUGcVs_nsVtzdOEdtWwKGZZLQHTxDZ7I56KU0Zwwo4NUX4oFJZEHLbXH5ApeO4YmlhxYQknCRvCo04DEVlxkKgpot621FAR17PLfYQJD_9W7m5a0mvLwOq7c2D4G65xz0-2ZpNmti1fl_xVva1qwclc8cApvMInmDQa2yO_m0ZTtutjMmHVg7HYr-z-DyI4jCxsS' },
+                { name: 'G3SG1 | Полярный камуфляж', rarity: 'common', price: 5, w: 800, img: iUrl + '-9a81dlWLwJ2UUGcVs_nsVtzdOEdtWwKGZZLQHTxDZ7I56KU0Zwwo4NUX4oFJZEHLbXH5ApeO4YmlhxYQknCRvCo04DEVlxkKgoWeabqOANf-r-fFAzE2ci0mVW0m_7zO6_cmnhD-Ml0juz--YXygED6rUo4ZWvydoXAdFQ3aF7X-QC7krjug8PpuM-bmiNluCEr4SuMzBywiAYMMLK8kEtnwQ' },
+                { name: 'SCAR-20 | Песчаная сетка', rarity: 'common', price: 4, w: 800, img: iUrl + '-9a81dlWLwJ2UUGcVs_nsVtzdOEdtWwKGZZLQHTxDZ7I56KU0Zwwo4NUX4oFJZEHLbXH5ApeO4YmlhxYQknCRvCo04DEVlxkKgoWeabqOANf-r-fFAzE2ci0m1-Gnvn8Oq_UmnhD-Ml0juz--YXygED6-UY6ZGv0cYOQd1M4NVnV_Va4xe25hp-0u53LnSdh7D5iuyisxxw-LgA1' },
+                { name: 'AWP | Бог червей', rarity: 'common', price: 30, w: 800, img: iUrl + '-9a81dlWLwJ2UUGcVs_nsVtzdOEdtWwKGZZLQHTxDZ7I56KU0Zwwo4NUX4oFJZEHLbXH5ApeO4YmlhxYQknCRvCo04DEVlxkKgpot621FAR17PLfYQJD_9W7m5a0mvLwOq7c2D4G65xz0-2ZpNmti1fl_xVva1qwclc8cApvMInmDQa2yO_m0ZTtutjMmHVg7HYr-z-DyI4jCxsS' },
+                { name: 'SSG 08 | Песчаная дюна', rarity: 'common', price: 6, w: 800, img: iUrl + '-9a81dlWLwJ2UUGcVs_nsVtzdOEdtWwKGZZLQHTxDZ7I56KU0Zwwo4NUX4oFJZEHLbXH5ApeO4YmlhxYQknCRvCo04DEVlxkKgoWeabqOANf-r-fFAzE2ci0mVW0m_7zO6_cmnhD-Ml0juz--YXygED6rUo4ZWvydoXAdFQ3aF7X-QC7krjug8PpuM-bmiNluCEr4SuMzBywiAYMMLK8kEtnwQ' },
+                { name: 'G3SG1 | Пустынная штриховка', rarity: 'common', price: 5, w: 800, img: iUrl + '-9a81dlWLwJ2UUGcVs_nsVtzdOEdtWwKGZZLQHTxDZ7I56KU0Zwwo4NUX4oFJZEHLbXH5ApeO4YmlhxYQknCRvCo04DEVlxkKgoWeabqOANf-r-fFAzE2ci0m1-Gnvn8Oq_UmnhD-Ml0juz--YXygED6-UY6ZGv0cYOQd1M4NVnV_Va4xe25hp-0u53LnSdh7D5iuyisxxw-LgA1' },
+                { name: 'SCAR-20 | Подрядчик', rarity: 'common', price: 5, w: 800, img: iUrl + '-9a81dlWLwJ2UUGcVs_nsVtzdOEdtWwKGZZLQHTxDZ7I56KU0Zwwo4NUX4oFJZEHLbXH5ApeO4YmlhxYQknCRvCo04DEVlxkKgoWeabqOANf-r-fFAzE2ci0mVW0m_7zO6_cmnhD-Ml0juz--YXygED6rUo4ZWvydoXAdFQ3aF7X-QC7krjug8PpuM-bmiNluCEr4SuMzBywiAYMMLK8kEtnwQ' },
+                { name: 'AWP | Фобос', rarity: 'common', price: 40, w: 800, img: iUrl + '-9a81dlWLwJ2UUGcVs_nsVtzdOEdtWwKGZZLQHTxDZ7I56KU0Zwwo4NUX4oFJZEHLbXH5ApeO4YmlhxYQknCRvCo04DEVlxkKgpot621FAR17PLfYQJD_9W7m5a0mvLwOq7c2D4G65xz0-2ZpNmti1fl_xVva1qwclc8cApvMInmDQa2yO_m0ZTtutjMmHVg7HYr-z-DyI4jCxsS' },
+                { name: 'SSG 08 | Мертвые головы', rarity: 'common', price: 10, w: 800, img: iUrl + '-9a81dlWLwJ2UUGcVs_nsVtzdOEdtWwKGZZLQHTxDZ7I56KU0Zwwo4NUX4oFJZEHLbXH5ApeO4YmlhxYQknCRvCo04DEVlxkKgoWeabqOANf-r-fFAzE2ci0m1-Gnvn8Oq_UmnhD-Ml0juz--YXygED6-UY6ZGv0cYOQd1M4NVnV_Va4xe25hp-0u53LnSdh7D5iuyisxxw-LgA1' },
+                { name: 'G3SG1 | Лазурная зебра', rarity: 'common', price: 15, w: 800, img: iUrl + '-9a81dlWLwJ2UUGcVs_nsVtzdOEdtWwKGZZLQHTxDZ7I56KU0Zwwo4NUX4oFJZEHLbXH5ApeO4YmlhxYQknCRvCo04DEVlxkKgoWeabqOANf-r-fFAzE2ci0mVW0m_7zO6_cmnhD-Ml0juz--YXygED6rUo4ZWvydoXAdFQ3aF7X-QC7krjug8PpuM-bmiNluCEr4SuMzBywiAYMMLK8kEtnwQ' },
+                { name: 'SCAR-20 | Углепластик', rarity: 'common', price: 12, w: 800, img: iUrl + '-9a81dlWLwJ2UUGcVs_nsVtzdOEdtWwKGZZLQHTxDZ7I56KU0Zwwo4NUX4oFJZEHLbXH5ApeO4YmlhxYQknCRvCo04DEVlxkKgoWeabqOANf-r-fFAzE2ci0m1-Gnvn8Oq_UmnhD-Ml0juz--YXygED6-UY6ZGv0cYOQd1M4NVnV_Va4xe25hp-0u53LnSdh7D5iuyisxxw-LgA1' },
+                { name: 'AWP | ЛАПКИ', rarity: 'common', price: 45, w: 800, img: iUrl + '-9a81dlWLwJ2UUGcVs_nsVtzdOEdtWwKGZZLQHTxDZ7I56KU0Zwwo4NUX4oFJZEHLbXH5ApeO4YmlhxYQknCRvCo04DEVlxkKgpot621FAR17PLfYQJD_9W7m5a0mvLwOq7c2D4G65xz0-2ZpNmti1fl_xVva1qwclc8cApvMInmDQa2yO_m0ZTtutjMmHVg7HYr-z-DyI4jCxsS' },
+                { name: 'SSG 08 | Темная вода', rarity: 'common', price: 20, w: 800, img: iUrl + '-9a81dlWLwJ2UUGcVs_nsVtzdOEdtWwKGZZLQHTxDZ7I56KU0Zwwo4NUX4oFJZEHLbXH5ApeO4YmlhxYQknCRvCo04DEVlxkKgoWeabqOANf-r-fFAzE2ci0mVW0m_7zO6_cmnhD-Ml0juz--YXygED6rUo4ZWvydoXAdFQ3aF7X-QC7krjug8PpuM-bmiNluCEr4SuMzBywiAYMMLK8kEtnwQ' },
+                { name: 'G3SG1 | Оранжевое кимоно', rarity: 'common', price: 18, w: 800, img: iUrl + '-9a81dlWLwJ2UUGcVs_nsVtzdOEdtWwKGZZLQHTxDZ7I56KU0Zwwo4NUX4oFJZEHLbXH5ApeO4YmlhxYQknCRvCo04DEVlxkKgoWeabqOANf-r-fFAzE2ci0m1-Gnvn8Oq_UmnhD-Ml0juz--YXygED6-UY6ZGv0cYOQd1M4NVnV_Va4xe25hp-0u53LnSdh7D5iuyisxxw-LgA1' },
+                { name: 'SCAR-20 | Калька', rarity: 'common', price: 15, w: 800, img: iUrl + '-9a81dlWLwJ2UUGcVs_nsVtzdOEdtWwKGZZLQHTxDZ7I56KU0Zwwo4NUX4oFJZEHLbXH5ApeO4YmlhxYQknCRvCo04DEVlxkKgoWeabqOANf-r-fFAzE2ci0mVW0m_7zO6_cmnhD-Ml0juz--YXygED6rUo4ZWvydoXAdFQ3aF7X-QC7krjug8PpuM-bmiNluCEr4SuMzBywiAYMMLK8kEtnwQ' },
+                { name: 'AWP | Капилляры', rarity: 'common', price: 35, w: 800, img: iUrl + '-9a81dlWLwJ2UUGcVs_nsVtzdOEdtWwKGZZLQHTxDZ7I56KU0Zwwo4NUX4oFJZEHLbXH5ApeO4YmlhxYQknCRvCo04DEVlxkKgpot621FAR17PLfYQJD_9W7m5a0mvLwOq7c2D4G65xz0-2ZpNmti1fl_xVva1qwclc8cApvMInmDQa2yO_m0ZTtutjMmHVg7HYr-z-DyI4jCxsS' },
+                { name: 'SSG 08 | Пучина', rarity: 'common', price: 25, w: 800, img: iUrl + '-9a81dlWLwJ2UUGcVs_nsVtzdOEdtWwKGZZLQHTxDZ7I56KU0Zwwo4NUX4oFJZEHLbXH5ApeO4YmlhxYQknCRvCo04DEVlxkKgoWeabqOANf-r-fFAzE2ci0m1-Gnvn8Oq_UmnhD-Ml0juz--YXygED6-UY6ZGv0cYOQd1M4NVnV_Va4xe25hp-0u53LnSdh7D5iuyisxxw-LgA1' },
+                { name: 'G3SG1 | Стервятник', rarity: 'common', price: 22, w: 800, img: iUrl + '-9a81dlWLwJ2UUGcVs_nsVtzdOEdtWwKGZZLQHTxDZ7I56KU0Zwwo4NUX4oFJZEHLbXH5ApeO4YmlhxYQknCRvCo04DEVlxkKgoWeabqOANf-r-fFAzE2ci0mVW0m_7zO6_cmnhD-Ml0juz--YXygED6rUo4ZWvydoXAdFQ3aF7X-QC7krjug8PpuM-bmiNluCEr4SuMzBywiAYMMLK8kEtnwQ' },
+                { name: 'SCAR-20 | Штурм', rarity: 'common', price: 18, w: 800, img: iUrl + '-9a81dlWLwJ2UUGcVs_nsVtzdOEdtWwKGZZLQHTxDZ7I56KU0Zwwo4NUX4oFJZEHLbXH5ApeO4YmlhxYQknCRvCo04DEVlxkKgoWeabqOANf-r-fFAzE2ci0m1-Gnvn8Oq_UmnhD-Ml0juz--YXygED6-UY6ZGv0cYOQd1M4NVnV_Va4xe25hp-0u53LnSdh7D5iuyisxxw-LgA1' },
+
+                // 5 средних
+                { name: 'AWP | Мортис', rarity: 'rare', price: 150, w: 40, img: iUrl + '-9a81dlWLwJ2UUGcVs_nsVtzdOEdtWwKGZZLQHTxDZ7I56KU0Zwwo4NUX4oFJZEHLbXH5ApeO4YmlhxYQknCRvCo04DEVlxkKgpot621FAR17PLfYQJD_9W7m5a0mvLwOq7c2D4G65xz0-2ZpNmti1fl_xVva1qwclc8cApvMInmDQa2yO_m0ZTtutjMmHVg7HYr-z-DyI4jCxsS' },
+                { name: 'AWP | Элитное снаряжение', rarity: 'rare', price: 200, w: 35, img: iUrl + '-9a81dlWLwJ2UUGcVs_nsVtzdOEdtWwKGZZLQHTxDZ7I56KU0Zwwo4NUX4oFJZEHLbXH5ApeO4YmlhxYQknCRvCo04DEVlxkKgpot621FAR17PLfYQJD_9W7m5a0mvLwOq7c2D4G65xz0-2ZpNmti1fl_xVva1qwclc8cApvMInmDQa2yO_m0ZTtutjMmHVg7HYr-z-DyI4jCxsS' },
+                { name: 'AWP | Древесная гадюка', rarity: 'rare', price: 180, w: 35, img: iUrl + '-9a81dlWLwJ2UUGcVs_nsVtzdOEdtWwKGZZLQHTxDZ7I56KU0Zwwo4NUX4oFJZEHLbXH5ApeO4YmlhxYQknCRvCo04DEVlxkKgpot621FAR17PLfYQJD_9W7m5a0mvLwOq7c2D4G65xz0-2ZpNmti1fl_xVva1qwclc8cApvMInmDQa2yO_m0ZTtutjMmHVg7HYr-z-DyI4jCxsS' },
+                { name: 'SSG 08 | Пламя дракона', rarity: 'epic', price: 250, w: 30, img: iUrl + '-9a81dlWLwJ2UUGcVs_nsVtzdOEdtWwKGZZLQHTxDZ7I56KU0Zwwo4NUX4oFJZEHLbXH5ApeO4YmlhxYQknCRvCo04DEVlxkKgoWeabqOANf-r-fFAzE2ci0m1-Gnvn8Oq_UmnhD-Ml0juz--YXygED6-UY6ZGv0cYOQd1M4NVnV_Va4xe25hp-0u53LnSdh7D5iuyisxxw-LgA1' },
+                { name: 'AWP | Красная линия', rarity: 'epic', price: 350, w: 25, img: iUrl + '-9a81dlWLwJ2UUGcVs_nsVtzdOEdtWwKGZZLQHTxDZ7I56KU0Zwwo4NUX4oFJZEHLbXH5ApeO4YmlhxYQknCRvCo04DEVlxkKgpot621FAR17PLfYQJD_9W7m5a0mvLwOq7c2D4G65xz0-2ZpNmti1fl_xVva1qwclc8cApvMInmDQa2yO_m0ZTtutjMmHVg7HYr-z-DyI4jCxsS' },
+
+                // 2 легендарки (Шанс почти ноль)
+                { name: 'AWP | История о драконе', rarity: 'gold', price: 35000, w: 1, img: iUrl + '-9a81dlWLwJ2UUGcVs_nsVtzdOEdtWwKGZZLQHTxDZ7I56KU0Zwwo4NUX4oFJZEHLbXH5ApeO4YmlhxYQknCRvCo04DEVlxkKgpot621FAR17PLfYQJD_9W7m5a0mvLwOq7c2D4G65xz0-2ZpNmti1fl_xVva1qwclc8cApvMInmDQa2yO_m0ZTtutjMmHVg7HYr-z-DyI4jCxsS' },
+                { name: 'AWP | Гунгнир', rarity: 'gold', price: 45000, w: 1, img: iUrl + '-9a81dlWLwJ2UUGcVs_nsVtzdOEdtWwKGZZLQHTxDZ7I56KU0Zwwo4NUX4oFJZEHLbXH5ApeO4YmlhxYQknCRvCo04DEVlxkKgpot621FAR17PLfYQJD_9W7m5a0mvLwOq7c2D4G65xz0-2ZpNmti1fl_xVva1qwclc8cApvMInmDQa2yO_m0ZTtutjMmHVg7HYr-z-DyI4jCxsS' }
+            ],
+
+            // 5. ПИСТОЛЕТНЫЙ КЕЙС (Окуп 20%. Цена: 150)
+            pistol: [
+                // 20 дешевых пистолетов
+                { name: 'Glock-18 | Литье', rarity: 'common', price: 10, w: 900, img: iUrl + '-9a81dlWLwJ2UUGcVs_nsVtzdOEdtWwKGZZLQHTxDZ7I56KU0Zwwo4NUX4oFJZEHLbXH5ApeO4YmlhxYQknCRvCo04DEVlxkKgposbaqKAxf0v73dDBH_t26q4S0m_7zO6_ck29Y_cg_2-yQpYmi0FHg-kQ9Yjv0JoGddlU2MA3Z8lLqyOnpgZDt6Z3JzyAwuSIj5HuJlwv330_5p-Rviw' },
+                { name: 'USP-S | Свинцовый проводник', rarity: 'common', price: 15, w: 900, img: iUrl + '-9a81dlWLwJ2UUGcVs_nsVtzdOEdtWwKGZZLQHTxDZ7I56KU0Zwwo4NUX4oFJZEHLbXH5ApeO4YmlhxYQknCRvCo04DEVlxkKgpoo6m1FBRp3_bGcTpN0924q4iOluHtfevVxzhTscYpjOqV8NmkigC280o6MWyicNXHdAQ2ZV3T8gToyOzrgp7ovpjMySNkpGB8snP8q3sA' },
+                { name: 'P250 | Валентность', rarity: 'common', price: 12, w: 900, img: iUrl + '-9a81dlWLwJ2UUGcVs_nsVtzdOEdtWwKGZZLQHTxDZ7I56KU0Zwwo4NUX4oFJZEHLbXH5ApeO4YmlhxYQknCRvCo04DEVlxkKgpopujwezhhwAMzcTFR09C_k4mClvnmJb_VlT1RsMhwj-zDo9j0hAawq0E9Z2r1JdTGdwU7ZwzRqVC5lrm60JO5vc7Pmns3pGB8stMvYt7U' },
+                { name: 'Desert Eagle | Бронзовая декорация', rarity: 'common', price: 18, w: 900, img: iUrl + '-9a81dlWLwJ2UUGcVs_nsVtzdOEdtWwKGZZLQHTxDZ7I56KU0Zwwo4NUX4oFJZEHLbXH5ApeO4YmlhxYQknCRvCo04DEVlxkKgoWeabqOANf-r-fFAzE2ci0m1-Gnvn8Oq_UmnhD-Ml0juz--YXygED6-UY6ZGv0cYOQd1M4NVnV_Va4xe25hp-0u53LnSdh7D5iuyisxxw-LgA1' },
+                { name: 'Tec-9 | Треснувший опал', rarity: 'common', price: 8, w: 900, img: iUrl + '-9a81dlWLwJ2UUGcVs_nsVtzdOEdtWwKGZZLQHTxDZ7I56KU0Zwwo4NUX4oFJZEHLbXH5ApeO4YmlhxYQknCRvCo04DEVlxkKgoWeabqOANf-r-fFAzE2ci0mVW0m_7zO6_cmnhD-Ml0juz--YXygED6rUo4ZWvydoXAdFQ3aF7X-QC7krjug8PpuM-bmiNluCEr4SuMzBywiAYMMLK8kEtnwQ' },
+                { name: 'Five-SeveN | Испытание огнем', rarity: 'common', price: 10, w: 900, img: iUrl + '-9a81dlWLwJ2UUGcVs_nsVtzdOEdtWwKGZZLQHTxDZ7I56KU0Zwwo4NUX4oFJZEHLbXH5ApeO4YmlhxYQknCRvCo04DEVlxkKgoWeabqOANf-r-fFAzE2ci0m1-Gnvn8Oq_UmnhD-Ml0juz--YXygED6-UY6ZGv0cYOQd1M4NVnV_Va4xe25hp-0u53LnSdh7D5iuyisxxw-LgA1' },
+                { name: 'Dual Berettas | Элита 1.6', rarity: 'common', price: 5, w: 900, img: iUrl + '-9a81dlWLwJ2UUGcVs_nsVtzdOEdtWwKGZZLQHTxDZ7I56KU0Zwwo4NUX4oFJZEHLbXH5ApeO4YmlhxYQknCRvCo04DEVlxkKgoWeabqOANf-r-fFAzE2ci0mVW0m_7zO6_cmnhD-Ml0juz--YXygED6rUo4ZWvydoXAdFQ3aF7X-QC7krjug8PpuM-bmiNluCEr4SuMzBywiAYMMLK8kEtnwQ' },
+                { name: 'CZ75-Auto | Штамповка', rarity: 'common', price: 8, w: 900, img: iUrl + '-9a81dlWLwJ2UUGcVs_nsVtzdOEdtWwKGZZLQHTxDZ7I56KU0Zwwo4NUX4oFJZEHLbXH5ApeO4YmlhxYQknCRvCo04DEVlxkKgoWeabqOANf-r-fFAzE2ci0m1-Gnvn8Oq_UmnhD-Ml0juz--YXygED6-UY6ZGv0cYOQd1M4NVnV_Va4xe25hp-0u53LnSdh7D5iuyisxxw-LgA1' },
+                { name: 'R8 Revolver | Кованая кость', rarity: 'common', price: 12, w: 900, img: iUrl + '-9a81dlWLwJ2UUGcVs_nsVtzdOEdtWwKGZZLQHTxDZ7I56KU0Zwwo4NUX4oFJZEHLbXH5ApeO4YmlhxYQknCRvCo04DEVlxkKgoWeabqOANf-r-fFAzE2ci0mVW0m_7zO6_cmnhD-Ml0juz--YXygED6rUo4ZWvydoXAdFQ3aF7X-QC7krjug8PpuM-bmiNluCEr4SuMzBywiAYMMLK8kEtnwQ' },
+                { name: 'Glock-18 | Призраки', rarity: 'common', price: 14, w: 900, img: iUrl + '-9a81dlWLwJ2UUGcVs_nsVtzdOEdtWwKGZZLQHTxDZ7I56KU0Zwwo4NUX4oFJZEHLbXH5ApeO4YmlhxYQknCRvCo04DEVlxkKgposbaqKAxf0v73dDBH_t26q4S0m_7zO6_ck29Y_cg_2-yQpYmi0FHg-kQ9Yjv0JoGddlU2MA3Z8lLqyOnpgZDt6Z3JzyAwuSIj5HuJlwv330_5p-Rviw' },
+                { name: 'USP-S | Кровавый тигр', rarity: 'common', price: 20, w: 900, img: iUrl + '-9a81dlWLwJ2UUGcVs_nsVtzdOEdtWwKGZZLQHTxDZ7I56KU0Zwwo4NUX4oFJZEHLbXH5ApeO4YmlhxYQknCRvCo04DEVlxkKgpoo6m1FBRp3_bGcTpN0924q4iOluHtfevVxzhTscYpjOqV8NmkigC280o6MWyicNXHdAQ2ZV3T8gToyOzrgp7ovpjMySNkpGB8snP8q3sA' },
+                { name: 'P250 | Сверхновая', rarity: 'common', price: 25, w: 900, img: iUrl + '-9a81dlWLwJ2UUGcVs_nsVtzdOEdtWwKGZZLQHTxDZ7I56KU0Zwwo4NUX4oFJZEHLbXH5ApeO4YmlhxYQknCRvCo04DEVlxkKgpopujwezhhwAMzcTFR09C_k4mClvnmJb_VlT1RsMhwj-zDo9j0hAawq0E9Z2r1JdTGdwU7ZwzRqVC5lrm60JO5vc7Pmns3pGB8stMvYt7U' },
+                { name: 'Desert Eagle | Коринфский', rarity: 'common', price: 22, w: 900, img: iUrl + '-9a81dlWLwJ2UUGcVs_nsVtzdOEdtWwKGZZLQHTxDZ7I56KU0Zwwo4NUX4oFJZEHLbXH5ApeO4YmlhxYQknCRvCo04DEVlxkKgoWeabqOANf-r-fFAzE2ci0m1-Gnvn8Oq_UmnhD-Ml0juz--YXygED6-UY6ZGv0cYOQd1M4NVnV_Va4xe25hp-0u53LnSdh7D5iuyisxxw-LgA1' },
+                { name: 'Tec-9 | Ледяной колпак', rarity: 'common', price: 15, w: 900, img: iUrl + '-9a81dlWLwJ2UUGcVs_nsVtzdOEdtWwKGZZLQHTxDZ7I56KU0Zwwo4NUX4oFJZEHLbXH5ApeO4YmlhxYQknCRvCo04DEVlxkKgoWeabqOANf-r-fFAzE2ci0mVW0m_7zO6_cmnhD-Ml0juz--YXygED6rUo4ZWvydoXAdFQ3aF7X-QC7krjug8PpuM-bmiNluCEr4SuMzBywiAYMMLK8kEtnwQ' },
+                { name: 'Five-SeveN | Скумбрия', rarity: 'common', price: 12, w: 900, img: iUrl + '-9a81dlWLwJ2UUGcVs_nsVtzdOEdtWwKGZZLQHTxDZ7I56KU0Zwwo4NUX4oFJZEHLbXH5ApeO4YmlhxYQknCRvCo04DEVlxkKgoWeabqOANf-r-fFAzE2ci0m1-Gnvn8Oq_UmnhD-Ml0juz--YXygED6-UY6ZGv0cYOQd1M4NVnV_Va4xe25hp-0u53LnSdh7D5iuyisxxw-LgA1' },
+                { name: 'Dual Berettas | Королевская чета', rarity: 'common', price: 18, w: 900, img: iUrl + '-9a81dlWLwJ2UUGcVs_nsVtzdOEdtWwKGZZLQHTxDZ7I56KU0Zwwo4NUX4oFJZEHLbXH5ApeO4YmlhxYQknCRvCo04DEVlxkKgoWeabqOANf-r-fFAzE2ci0mVW0m_7zO6_cmnhD-Ml0juz--YXygED6rUo4ZWvydoXAdFQ3aF7X-QC7krjug8PpuM-bmiNluCEr4SuMzBywiAYMMLK8kEtnwQ' },
+                { name: 'CZ75-Auto | Тигр', rarity: 'common', price: 20, w: 900, img: iUrl + '-9a81dlWLwJ2UUGcVs_nsVtzdOEdtWwKGZZLQHTxDZ7I56KU0Zwwo4NUX4oFJZEHLbXH5ApeO4YmlhxYQknCRvCo04DEVlxkKgoWeabqOANf-r-fFAzE2ci0m1-Gnvn8Oq_UmnhD-Ml0juz--YXygED6-UY6ZGv0cYOQd1M4NVnV_Va4xe25hp-0u53LnSdh7D5iuyisxxw-LgA1' },
+                { name: 'R8 Revolver | Хватка', rarity: 'common', price: 15, w: 900, img: iUrl + '-9a81dlWLwJ2UUGcVs_nsVtzdOEdtWwKGZZLQHTxDZ7I56KU0Zwwo4NUX4oFJZEHLbXH5ApeO4YmlhxYQknCRvCo04DEVlxkKgoWeabqOANf-r-fFAzE2ci0mVW0m_7zO6_cmnhD-Ml0juz--YXygED6rUo4ZWvydoXAdFQ3aF7X-QC7krjug8PpuM-bmiNluCEr4SuMzBywiAYMMLK8kEtnwQ' },
+                { name: 'Glock-18 | Горелка Бунзена', rarity: 'common', price: 12, w: 900, img: iUrl + '-9a81dlWLwJ2UUGcVs_nsVtzdOEdtWwKGZZLQHTxDZ7I56KU0Zwwo4NUX4oFJZEHLbXH5ApeO4YmlhxYQknCRvCo04DEVlxkKgposbaqKAxf0v73dDBH_t26q4S0m_7zO6_ck29Y_cg_2-yQpYmi0FHg-kQ9Yjv0JoGddlU2MA3Z8lLqyOnpgZDt6Z3JzyAwuSIj5HuJlwv330_5p-Rviw' },
+                { name: 'USP-S | Закрученный', rarity: 'common', price: 25, w: 900, img: iUrl + '-9a81dlWLwJ2UUGcVs_nsVtzdOEdtWwKGZZLQHTxDZ7I56KU0Zwwo4NUX4oFJZEHLbXH5ApeO4YmlhxYQknCRvCo04DEVlxkKgpoo6m1FBRp3_bGcTpN0924q4iOluHtfevVxzhTscYpjOqV8NmkigC280o6MWyicNXHdAQ2ZV3T8gToyOzrgp7ovpjMySNkpGB8snP8q3sA' },
+
+                // 5 средних
+                { name: 'Glock-18 | Дух воды', rarity: 'rare', price: 80, w: 50, img: iUrl + '-9a81dlWLwJ2UUGcVs_nsVtzdOEdtWwKGZZLQHTxDZ7I56KU0Zwwo4NUX4oFJZEHLbXH5ApeO4YmlhxYQknCRvCo04DEVlxkKgposbaqKAxf0v73dDBH_t26q4S0m_7zO6_ck29Y_cg_2-yQpYmi0FHg-kQ9Yjv0JoGddlU2MA3Z8lLqyOnpgZDt6Z3JzyAwuSIj5HuJlwv330_5p-Rviw' },
+                { name: 'USP-S | Извилина', rarity: 'rare', price: 90, w: 50, img: iUrl + '-9a81dlWLwJ2UUGcVs_nsVtzdOEdtWwKGZZLQHTxDZ7I56KU0Zwwo4NUX4oFJZEHLbXH5ApeO4YmlhxYQknCRvCo04DEVlxkKgpoo6m1FBRp3_bGcTpN0924q4iOluHtfevVxzhTscYpjOqV8NmkigC280o6MWyicNXHdAQ2ZV3T8gToyOzrgp7ovpjMySNkpGB8snP8q3sA' },
+                { name: 'Desert Eagle | Заговор', rarity: 'rare', price: 75, w: 50, img: iUrl + '-9a81dlWLwJ2UUGcVs_nsVtzdOEdtWwKGZZLQHTxDZ7I56KU0Zwwo4NUX4oFJZEHLbXH5ApeO4YmlhxYQknCRvCo04DEVlxkKgoWeabqOANf-r-fFAzE2ci0m1-Gnvn8Oq_UmnhD-Ml0juz--YXygED6-UY6ZGv0cYOQd1M4NVnV_Va4xe25hp-0u53LnSdh7D5iuyisxxw-LgA1' },
+                { name: 'P250 | Азимов', rarity: 'rare', price: 85, w: 45, img: iUrl + '-9a81dlWLwJ2UUGcVs_nsVtzdOEdtWwKGZZLQHTxDZ7I56KU0Zwwo4NUX4oFJZEHLbXH5ApeO4YmlhxYQknCRvCo04DEVlxkKgpopujwezhhwAMzcTFR09C_k4mClvnmJb_VlT1RsMhwj-zDo9j0hAawq0E9Z2r1JdTGdwU7ZwzRqVC5lrm60JO5vc7Pmns3pGB8stMvYt7U' },
+                { name: 'Five-SeveN | Обезьянье дело', rarity: 'rare', price: 70, w: 45, img: iUrl + '-9a81dlWLwJ2UUGcVs_nsVtzdOEdtWwKGZZLQHTxDZ7I56KU0Zwwo4NUX4oFJZEHLbXH5ApeO4YmlhxYQknCRvCo04DEVlxkKgoWeabqOANf-r-fFAzE2ci0mVW0m_7zO6_cmnhD-Ml0juz--YXygED6rUo4ZWvydoXAdFQ3aF7X-QC7krjug8PpuM-bmiNluCEr4SuMzBywiAYMMLK8kEtnwQ' },
+
+                // 2 топа
+                { name: 'Desert Eagle | Пламя', rarity: 'epic', price: 2500, w: 2, img: iUrl + '-9a81dlWLwJ2UUGcVs_nsVtzdOEdtWwKGZZLQHTxDZ7I56KU0Zwwo4NUX4oFJZEHLbXH5ApeO4YmlhxYQknCRvCo04DEVlxkKgoWeabqOANf-r-fFAzE2ci0m1-Gnvn8Oq_UmnhD-Ml0juz--YXygED6-UY6ZGv0cYOQd1M4NVnV_Va4xe25hp-0u53LnSdh7D5iuyisxxw-LgA1' },
+                { name: 'USP-S | Подтвержденное убийство', rarity: 'epic', price: 3000, w: 1, img: iUrl + '-9a81dlWLwJ2UUGcVs_nsVtzdOEdtWwKGZZLQHTxDZ7I56KU0Zwwo4NUX4oFJZEHLbXH5ApeO4YmlhxYQknCRvCo04DEVlxkKgpoo6m1FBRp3_bGcTpN0924q4iOluHtfevVxzhTscYpjOqV8NmkigC280o6MWyicNXHdAQ2ZV3T8gToyOzrgp7ovpjMySNkpGB8snP8q3sA' }
+            ],
+
+            // 6. ПЕРЧАТОЧНЫЙ КЕЙС (Цена: 2200. Окуп 10%)
+            glove: [
+                // 25 дешевых перчаток (стоят 200-500, дикий минус)
+                { name: 'Водительские перчатки | Гоночный зеленый', rarity: 'common', price: 200, w: 800, img: iUrl + '-9a81dlWLwJ2UUGcVs_nsVtzdOEdtWwKGZZLQHTxDZ7I56KU0Zwwo4NUX4oFJZEHLbXH5ApeO4YmlhxYQknCRvCo04DEVlxkKgpovbSsLQJfwPjNfThW49KJnJm0kfjmILDSh2pC-sRzj-HPpoqtjVGyqkBkYzindoecegRrZljZ_ATvxee7hMfqtJrVnyb4nCRgslnO' },
+                { name: 'Обмотки рук | Клейкая лента', rarity: 'common', price: 250, w: 800, img: iUrl + '-9a81dlWLwJ2UUGcVs_nsVtzdOEdtWwKGZZLQHTxDZ7I56KU0Zwwo4NUX4oFJZEHLbXH5ApeO4YmlhxYQknCRvCo04DEVlxkKgpovbSsLQJfwPjNfThW49KJnJm0kfjmILDSh2pC-sRzj-HPpoqtjVGyqkBkYzindoecegRrZljZ_ATvxee7hMfqtJrVnyb4nCRgslnO' },
+                { name: 'Мотоциклетные перчатки | 3-я рота', rarity: 'common', price: 300, w: 800, img: iUrl + '-9a81dlWLwJ2UUGcVs_nsVtzdOEdtWwKGZZLQHTxDZ7I56KU0Zwwo4NUX4oFJZEHLbXH5ApeO4YmlhxYQknCRvCo04DEVlxkKgpovbSsLQJfwPjNfThW49KJnJm0kfjmILDSh2pC-sRzj-HPpoqtjVGyqkBkYzindoecegRrZljZ_ATvxee7hMfqtJrVnyb4nCRgslnO' },
+                { name: 'Перчатки спецназа | Дробь', rarity: 'common', price: 220, w: 800, img: iUrl + '-9a81dlWLwJ2UUGcVs_nsVtzdOEdtWwKGZZLQHTxDZ7I56KU0Zwwo4NUX4oFJZEHLbXH5ApeO4YmlhxYQknCRvCo04DEVlxkKgpovbSsLQJfwPjNfThW49KJnJm0kfjmILDSh2pC-sRzj-HPpoqtjVGyqkBkYzindoecegRrZljZ_ATvxee7hMfqtJrVnyb4nCRgslnO' },
+                { name: 'Перчатки «Бладхаунд» | Партизан', rarity: 'common', price: 350, w: 800, img: iUrl + '-9a81dlWLwJ2UUGcVs_nsVtzdOEdtWwKGZZLQHTxDZ7I56KU0Zwwo4NUX4oFJZEHLbXH5ApeO4YmlhxYQknCRvCo04DEVlxkKgpovbSsLQJfwPjNfThW49KJnJm0kfjmILDSh2pC-sRzj-HPpoqtjVGyqkBkYzindoecegRrZljZ_ATvxee7hMfqtJrVnyb4nCRgslnO' },
+                { name: 'Перчатки «Гидры» | Мангры', rarity: 'common', price: 180, w: 800, img: iUrl + '-9a81dlWLwJ2UUGcVs_nsVtzdOEdtWwKGZZLQHTxDZ7I56KU0Zwwo4NUX4oFJZEHLbXH5ApeO4YmlhxYQknCRvCo04DEVlxkKgpovbSsLQJfwPjNfThW49KJnJm0kfjmILDSh2pC-sRzj-HPpoqtjVGyqkBkYzindoecegRrZljZ_ATvxee7hMfqtJrVnyb4nCRgslnO' },
+                { name: 'Перчатки «Сломанный клык» | Иглошерст', rarity: 'common', price: 210, w: 800, img: iUrl + '-9a81dlWLwJ2UUGcVs_nsVtzdOEdtWwKGZZLQHTxDZ7I56KU0Zwwo4NUX4oFJZEHLbXH5ApeO4YmlhxYQknCRvCo04DEVlxkKgpovbSsLQJfwPjNfThW49KJnJm0kfjmILDSh2pC-sRzj-HPpoqtjVGyqkBkYzindoecegRrZljZ_ATvxee7hMfqtJrVnyb4nCRgslnO' },
+                { name: 'Водительские перчатки | Конвой', rarity: 'common', price: 260, w: 800, img: iUrl + '-9a81dlWLwJ2UUGcVs_nsVtzdOEdtWwKGZZLQHTxDZ7I56KU0Zwwo4NUX4oFJZEHLbXH5ApeO4YmlhxYQknCRvCo04DEVlxkKgpovbSsLQJfwPjNfThW49KJnJm0kfjmILDSh2pC-sRzj-HPpoqtjVGyqkBkYzindoecegRrZljZ_ATvxee7hMfqtJrVnyb4nCRgslnO' },
+                { name: 'Обмотки рук | Лес', rarity: 'common', price: 240, w: 800, img: iUrl + '-9a81dlWLwJ2UUGcVs_nsVtzdOEdtWwKGZZLQHTxDZ7I56KU0Zwwo4NUX4oFJZEHLbXH5ApeO4YmlhxYQknCRvCo04DEVlxkKgpovbSsLQJfwPjNfThW49KJnJm0kfjmILDSh2pC-sRzj-HPpoqtjVGyqkBkYzindoecegRrZljZ_ATvxee7hMfqtJrVnyb4nCRgslnO' },
+                { name: 'Мотоциклетные перчатки | Транспорт', rarity: 'common', price: 280, w: 800, img: iUrl + '-9a81dlWLwJ2UUGcVs_nsVtzdOEdtWwKGZZLQHTxDZ7I56KU0Zwwo4NUX4oFJZEHLbXH5ApeO4YmlhxYQknCRvCo04DEVlxkKgpovbSsLQJfwPjNfThW49KJnJm0kfjmILDSh2pC-sRzj-HPpoqtjVGyqkBkYzindoecegRrZljZ_ATvxee7hMfqtJrVnyb4nCRgslnO' },
+                { name: 'Перчатки спецназа | Пиксельный камуфляж', rarity: 'common', price: 230, w: 800, img: iUrl + '-9a81dlWLwJ2UUGcVs_nsVtzdOEdtWwKGZZLQHTxDZ7I56KU0Zwwo4NUX4oFJZEHLbXH5ApeO4YmlhxYQknCRvCo04DEVlxkKgpovbSsLQJfwPjNfThW49KJnJm0kfjmILDSh2pC-sRzj-HPpoqtjVGyqkBkYzindoecegRrZljZ_ATvxee7hMfqtJrVnyb4nCRgslnO' },
+                { name: 'Перчатки «Бладхаунд» | Бронза', rarity: 'common', price: 320, w: 800, img: iUrl + '-9a81dlWLwJ2UUGcVs_nsVtzdOEdtWwKGZZLQHTxDZ7I56KU0Zwwo4NUX4oFJZEHLbXH5ApeO4YmlhxYQknCRvCo04DEVlxkKgpovbSsLQJfwPjNfThW49KJnJm0kfjmILDSh2pC-sRzj-HPpoqtjVGyqkBkYzindoecegRrZljZ_ATvxee7hMfqtJrVnyb4nCRgslnO' },
+                { name: 'Перчатки «Гидры» | Гремучая змея', rarity: 'common', price: 190, w: 800, img: iUrl + '-9a81dlWLwJ2UUGcVs_nsVtzdOEdtWwKGZZLQHTxDZ7I56KU0Zwwo4NUX4oFJZEHLbXH5ApeO4YmlhxYQknCRvCo04DEVlxkKgpovbSsLQJfwPjNfThW49KJnJm0kfjmILDSh2pC-sRzj-HPpoqtjVGyqkBkYzindoecegRrZljZ_ATvxee7hMfqtJrVnyb4nCRgslnO' },
+                { name: 'Перчатки «Сломанный клык» | Сорвиголова', rarity: 'common', price: 250, w: 800, img: iUrl + '-9a81dlWLwJ2UUGcVs_nsVtzdOEdtWwKGZZLQHTxDZ7I56KU0Zwwo4NUX4oFJZEHLbXH5ApeO4YmlhxYQknCRvCo04DEVlxkKgpovbSsLQJfwPjNfThW49KJnJm0kfjmILDSh2pC-sRzj-HPpoqtjVGyqkBkYzindoecegRrZljZ_ATvxee7hMfqtJrVnyb4nCRgslnO' },
+                { name: 'Водительские перчатки | Обгон', rarity: 'common', price: 380, w: 800, img: iUrl + '-9a81dlWLwJ2UUGcVs_nsVtzdOEdtWwKGZZLQHTxDZ7I56KU0Zwwo4NUX4oFJZEHLbXH5ApeO4YmlhxYQknCRvCo04DEVlxkKgpovbSsLQJfwPjNfThW49KJnJm0kfjmILDSh2pC-sRzj-HPpoqtjVGyqkBkYzindoecegRrZljZ_ATvxee7hMfqtJrVnyb4nCRgslnO' },
+                { name: 'Обмотки рук | Пустошь', rarity: 'common', price: 400, w: 800, img: iUrl + '-9a81dlWLwJ2UUGcVs_nsVtzdOEdtWwKGZZLQHTxDZ7I56KU0Zwwo4NUX4oFJZEHLbXH5ApeO4YmlhxYQknCRvCo04DEVlxkKgpovbSsLQJfwPjNfThW49KJnJm0kfjmILDSh2pC-sRzj-HPpoqtjVGyqkBkYzindoecegRrZljZ_ATvxee7hMfqtJrVnyb4nCRgslnO' },
+                { name: 'Мотоциклетные перчатки | Затмение', rarity: 'common', price: 390, w: 800, img: iUrl + '-9a81dlWLwJ2UUGcVs_nsVtzdOEdtWwKGZZLQHTxDZ7I56KU0Zwwo4NUX4oFJZEHLbXH5ApeO4YmlhxYQknCRvCo04DEVlxkKgpovbSsLQJfwPjNfThW49KJnJm0kfjmILDSh2pC-sRzj-HPpoqtjVGyqkBkYzindoecegRrZljZ_ATvxee7hMfqtJrVnyb4nCRgslnO' },
+                { name: 'Перчатки спецназа | Капитан 3-го ранга', rarity: 'common', price: 420, w: 800, img: iUrl + '-9a81dlWLwJ2UUGcVs_nsVtzdOEdtWwKGZZLQHTxDZ7I56KU0Zwwo4NUX4oFJZEHLbXH5ApeO4YmlhxYQknCRvCo04DEVlxkKgpovbSsLQJfwPjNfThW49KJnJm0kfjmILDSh2pC-sRzj-HPpoqtjVGyqkBkYzindoecegRrZljZ_ATvxee7hMfqtJrVnyb4nCRgslnO' },
+                { name: 'Спортивные перчатки | Бронзовая морфология', rarity: 'common', price: 450, w: 800, img: iUrl + '-9a81dlWLwJ2UUGcVs_nsVtzdOEdtWwKGZZLQHTxDZ7I56KU0Zwwo4NUX4oFJZEHLbXH5ApeO4YmlhxYQknCRvCo04DEVlxkKgpovbSsLQJfwPjNfThW49KJnJm0kfjmILDSh2pC-sRzj-HPpoqtjVGyqkBkYzindoecegRrZljZ_ATvxee7hMfqtJrVnyb4nCRgslnO' },
+                { name: 'Перчатки «Гидры» | Изумруд', rarity: 'common', price: 300, w: 800, img: iUrl + '-9a81dlWLwJ2UUGcVs_nsVtzdOEdtWwKGZZLQHTxDZ7I56KU0Zwwo4NUX4oFJZEHLbXH5ApeO4YmlhxYQknCRvCo04DEVlxkKgpovbSsLQJfwPjNfThW49KJnJm0kfjmILDSh2pC-sRzj-HPpoqtjVGyqkBkYzindoecegRrZljZ_ATvxee7hMfqtJrVnyb4nCRgslnO' },
+                { name: 'Спортивные перчатки | Засуха', rarity: 'common', price: 480, w: 800, img: iUrl + '-9a81dlWLwJ2UUGcVs_nsVtzdOEdtWwKGZZLQHTxDZ7I56KU0Zwwo4NUX4oFJZEHLbXH5ApeO4YmlhxYQknCRvCo04DEVlxkKgpovbSsLQJfwPjNfThW49KJnJm0kfjmILDSh2pC-sRzj-HPpoqtjVGyqkBkYzindoecegRrZljZ_ATvxee7hMfqtJrVnyb4nCRgslnO' },
+                { name: 'Водительские перчатки | Королевский змей', rarity: 'common', price: 500, w: 800, img: iUrl + '-9a81dlWLwJ2UUGcVs_nsVtzdOEdtWwKGZZLQHTxDZ7I56KU0Zwwo4NUX4oFJZEHLbXH5ApeO4YmlhxYQknCRvCo04DEVlxkKgpovbSsLQJfwPjNfThW49KJnJm0kfjmILDSh2pC-sRzj-HPpoqtjVGyqkBkYzindoecegRrZljZ_ATvxee7hMfqtJrVnyb4nCRgslnO' },
+                { name: 'Мотоциклетные перчатки | Мята', rarity: 'common', price: 550, w: 800, img: iUrl + '-9a81dlWLwJ2UUGcVs_nsVtzdOEdtWwKGZZLQHTxDZ7I56KU0Zwwo4NUX4oFJZEHLbXH5ApeO4YmlhxYQknCRvCo04DEVlxkKgpovbSsLQJfwPjNfThW49KJnJm0kfjmILDSh2pC-sRzj-HPpoqtjVGyqkBkYzindoecegRrZljZ_ATvxee7hMfqtJrVnyb4nCRgslnO' },
+                { name: 'Перчатки спецназа | Изумрудная сеть', rarity: 'common', price: 600, w: 800, img: iUrl + '-9a81dlWLwJ2UUGcVs_nsVtzdOEdtWwKGZZLQHTxDZ7I56KU0Zwwo4NUX4oFJZEHLbXH5ApeO4YmlhxYQknCRvCo04DEVlxkKgpovbSsLQJfwPjNfThW49KJnJm0kfjmILDSh2pC-sRzj-HPpoqtjVGyqkBkYzindoecegRrZljZ_ATvxee7hMfqtJrVnyb4nCRgslnO' },
+                { name: 'Обмотки рук | Бойня', rarity: 'common', price: 470, w: 800, img: iUrl + '-9a81dlWLwJ2UUGcVs_nsVtzdOEdtWwKGZZLQHTxDZ7I56KU0Zwwo4NUX4oFJZEHLbXH5ApeO4YmlhxYQknCRvCo04DEVlxkKgpovbSsLQJfwPjNfThW49KJnJm0kfjmILDSh2pC-sRzj-HPpoqtjVGyqkBkYzindoecegRrZljZ_ATvxee7hMfqtJrVnyb4nCRgslnO' },
+
+                // 2 топа
+                { name: 'Спортивные перчатки | Порок', rarity: 'gold', price: 35000, w: 2, img: iUrl + '-9a81dlWLwJ2UUGcVs_nsVtzdOEdtWwKGZZLQHTxDZ7I56KU0Zwwo4NUX4oFJZEHLbXH5ApeO4YmlhxYQknCRvCo04DEVlxkKgpovbSsLQJfwPjNfThW49KJnJm0kfjmILDSh2pC-sRzj-HPpoqtjVGyqkBkYzindoecegRrZljZ_ATvxee7hMfqtJrVnyb4nCRgslnO' },
+                { name: 'Спортивные перчатки | Ящик Пандоры', rarity: 'gold', price: 50000, w: 1, img: iUrl + '-9a81dlWLwJ2UUGcVs_nsVtzdOEdtWwKGZZLQHTxDZ7I56KU0Zwwo4NUX4oFJZEHLbXH5ApeO4YmlhxYQknCRvCo04DEVlxkKgpovbSsLQJfwPjNfThW49KJnJm0kfjmILDSh2pC-sRzj-HPpoqtjVGyqkBkYzindoecegRrZljZ_ATvxee7hMfqtJrVnyb4nCRgslnO' }
+            ],
+
+            // 7. СЕКРЕТНЫЙ КЕЙС (Только красные. Окуп 5%. Цена: 5000)
+            secret: [
+                // 20 "дешевых" красных, которые уводят в жесткий минус (цена 500-1500)
+                { name: 'AK-47 | Неоновый гонщик', rarity: 'epic', price: 800, w: 500, img: iUrl + '-9a81dlWLwJ2UUGcVs_nsVtzdOEdtWwKGZZLQHTxDZ7I56KU0Zwwo4NUX4oFJZEHLbXH5ApeO4YmlhxYQknCRvCo04DEVlxkKgpot7HxfDhjxszJemkV09-5lpKKqPrxN7LEmyVQ7MEpiLuX8I-k3QXsqRVlZ2GlIYPBdwc4YlvR8gTqxebpg8W_vM-fmHdgvCUn4CndmQv3308mIukPGA' },
+                { name: 'M4A4 | Король драконов', rarity: 'epic', price: 600, w: 500, img: iUrl + '-9a81dlWLwJ2UUGcVs_nsVtzdOEdtWwKGZZLQHTxDZ7I56KU0Zwwo4NUX4oFJZEHLbXH5ApeO4YmlhxYQknCRvCo04DEVlxkKgpou-6kejhjxszfjDFW-M6_hIW0mOX1N-Luhm5V18N0hf-WpInwi0GxqkMqMDivcY6XcAM3M12CqVm-xLjrhJG9ucicyHFkvCMq-z-DyK9O_-kQ' },
+                { name: 'AWP | Скоростной зверь', rarity: 'epic', price: 1200, w: 500, img: iUrl + '-9a81dlWLwJ2UUGcVs_nsVtzdOEdtWwKGZZLQHTxDZ7I56KU0Zwwo4NUX4oFJZEHLbXH5ApeO4YmlhxYQknCRvCo04DEVlxkKgpot621FAR17PLfYQJD_9W7m5a0mvLwOq7c2D4G65xz0-2ZpNmti1fl_xVva1qwclc8cApvMInmDQa2yO_m0ZTtutjMmHVg7HYr-z-DyI4jCxsS' },
+                { name: 'USP-S | Убийство', rarity: 'epic', price: 900, w: 500, img: iUrl + '-9a81dlWLwJ2UUGcVs_nsVtzdOEdtWwKGZZLQHTxDZ7I56KU0Zwwo4NUX4oFJZEHLbXH5ApeO4YmlhxYQknCRvCo04DEVlxkKgpoo6m1FBRp3_bGcTpN0924q4iOluHtfevVxzhTscYpjOqV8NmkigC280o6MWyicNXHdAQ2ZV3T8gToyOzrgp7ovpjMySNkpGB8snP8q3sA' },
+                { name: 'Glock-18 | Пустынный повстанец', rarity: 'epic', price: 500, w: 500, img: iUrl + '-9a81dlWLwJ2UUGcVs_nsVtzdOEdtWwKGZZLQHTxDZ7I56KU0Zwwo4NUX4oFJZEHLbXH5ApeO4YmlhxYQknCRvCo04DEVlxkKgposbaqKAxf0v73dDBH_t26q4S0m_7zO6_ck29Y_cg_2-yQpYmi0FHg-kQ9Yjv0JoGddlU2MA3Z8lLqyOnpgZDt6Z3JzyAwuSIj5HuJlwv330_5p-Rviw' },
+                { name: 'Desert Eagle | Ржавый кобальт', rarity: 'epic', price: 700, w: 500, img: iUrl + '-9a81dlWLwJ2UUGcVs_nsVtzdOEdtWwKGZZLQHTxDZ7I56KU0Zwwo4NUX4oFJZEHLbXH5ApeO4YmlhxYQknCRvCo04DEVlxkKgoWeabqOANf-r-fFAzE2ci0m1-Gnvn8Oq_UmnhD-Ml0juz--YXygED6-UY6ZGv0cYOQd1M4NVnV_Va4xe25hp-0u53LnSdh7D5iuyisxxw-LgA1' },
+                { name: 'M4A1-S | Сайрекс', rarity: 'epic', price: 850, w: 500, img: iUrl + '-9a81dlWLwJ2UUGcVs_nsVtzdOEdtWwKGZZLQHTxDZ7I56KU0Zwwo4NUX4oFJZEHLbXH5ApeO4YmlhxYQknCRvCo04DEVlxkKgpou-6kcjhozezbDzhN09G_k4if2a_8ML_Wk1Rcw1RlvjnHptqki1Gy_kM9azqlcYSWJwE2Z1zT8wTswLy8hJHu7ZTNzSBk73Nw5nfVmhS1hxwfbeK5yQ' },
+                { name: 'AK-47 | Кровавый спорт', rarity: 'epic', price: 1500, w: 500, img: iUrl + '-9a81dlWLwJ2UUGcVs_nsVtzdOEdtWwKGZZLQHTxDZ7I56KU0Zwwo4NUX4oFJZEHLbXH5ApeO4YmlhxYQknCRvCo04DEVlxkKgpot7HxfDhjxszJemkV09-5lpKKqPrxN7LEmyVQ7MEpiLuX8I-k3QXsqRVlZ2GlIYPBdwc4YlvR8gTqxebpg8W_vM-fmHdgvCUn4CndmQv3308mIukPGA' },
+                { name: 'AWP | Дикое пламя', rarity: 'epic', price: 1400, w: 500, img: iUrl + '-9a81dlWLwJ2UUGcVs_nsVtzdOEdtWwKGZZLQHTxDZ7I56KU0Zwwo4NUX4oFJZEHLbXH5ApeO4YmlhxYQknCRvCo04DEVlxkKgpot621FAR17PLfYQJD_9W7m5a0mvLwOq7c2D4G65xz0-2ZpNmti1fl_xVva1qwclc8cApvMInmDQa2yO_m0ZTtutjMmHVg7HYr-z-DyI4jCxsS' },
+                { name: 'M4A4 | Неонуар', rarity: 'epic', price: 1100, w: 500, img: iUrl + '-9a81dlWLwJ2UUGcVs_nsVtzdOEdtWwKGZZLQHTxDZ7I56KU0Zwwo4NUX4oFJZEHLbXH5ApeO4YmlhxYQknCRvCo04DEVlxkKgpou-6kejhjxszfjDFW-M6_hIW0mOX1N-Luhm5V18N0hf-WpInwi0GxqkMqMDivcY6XcAM3M12CqVm-xLjrhJG9ucicyHFkvCMq-z-DyK9O_-kQ' },
+                { name: 'AUG | Акихабара', rarity: 'epic', price: 1300, w: 500, img: iUrl + '-9a81dlWLwJ2UUGcVs_nsVtzdOEdtWwKGZZLQHTxDZ7I56KU0Zwwo4NUX4oFJZEHLbXH5ApeO4YmlhxYQknCRvCo04DEVlxkKgoWeabqOANf-r-fFAzE2ci0m1-Gnvn8Oq_UmnhD-Ml0juz--YXygED6-UY6ZGv0cYOQd1M4NVnV_Va4xe25hp-0u53LnSdh7D5iuyisxxw-LgA1' },
+                { name: 'FAMAS | Валентность', rarity: 'epic', price: 550, w: 500, img: iUrl + '-9a81dlWLwJ2UUGcVs_nsVtzdOEdtWwKGZZLQHTxDZ7I56KU0Zwwo4NUX4oFJZEHLbXH5ApeO4YmlhxYQknCRvCo04DEVlxkKgoWeabqOANf-r-fFAzE2ci0mVW0m_7zO6_cmnhD-Ml0juz--YXygED6rUo4ZWvydoXAdFQ3aF7X-QC7krjug8PpuM-bmiNluCEr4SuMzBywiAYMMLK8kEtnwQ' },
+                { name: 'Galil AR | Щелкунчик', rarity: 'epic', price: 600, w: 500, img: iUrl + '-9a81dlWLwJ2UUGcVs_nsVtzdOEdtWwKGZZLQHTxDZ7I56KU0Zwwo4NUX4oFJZEHLbXH5ApeO4YmlhxYQknCRvCo04DEVlxkKgoWeabqOANf-r-fFAzE2ci0m1-Gnvn8Oq_UmnhD-Ml0juz--YXygED6-UY6ZGv0cYOQd1M4NVnV_Va4xe25hp-0u53LnSdh7D5iuyisxxw-LgA1' },
+                { name: 'P90 | Азимов', rarity: 'epic', price: 750, w: 500, img: iUrl + '-9a81dlWLwJ2UUGcVs_nsVtzdOEdtWwKGZZLQHTxDZ7I56KU0Zwwo4NUX4oFJZEHLbXH5ApeO4YmlhxYQknCRvCo04DEVlxkKgoWeabqOANf-r-fFAzE2ci0mVW0m_7zO6_cmnhD-Ml0juz--YXygED6rUo4ZWvydoXAdFQ3aF7X-QC7krjug8PpuM-bmiNluCEr4SuMzBywiAYMMLK8kEtnwQ' },
+                { name: 'MAC-10 | Неоновый гонщик', rarity: 'epic', price: 650, w: 500, img: iUrl + '-9a81dlWLwJ2UUGcVs_nsVtzdOEdtWwKGZZLQHTxDZ7I56KU0Zwwo4NUX4oFJZEHLbXH5ApeO4YmlhxYQknCRvCo04DEVlxkKgoWeabqOANf-r-fFAzE2ci0m1-Gnvn8Oq_UmnhD-Ml0juz--YXygED6-UY6ZGv0cYOQd1M4NVnV_Va4xe25hp-0u53LnSdh7D5iuyisxxw-LgA1' },
+                { name: 'MP7 | Кровавый спорт', rarity: 'epic', price: 700, w: 500, img: iUrl + '-9a81dlWLwJ2UUGcVs_nsVtzdOEdtWwKGZZLQHTxDZ7I56KU0Zwwo4NUX4oFJZEHLbXH5ApeO4YmlhxYQknCRvCo04DEVlxkKgoWeabqOANf-r-fFAzE2ci0mVW0m_7zO6_cmnhD-Ml0juz--YXygED6rUo4ZWvydoXAdFQ3aF7X-QC7krjug8PpuM-bmiNluCEr4SuMzBywiAYMMLK8kEtnwQ' },
+                { name: 'UMP-45 | Первобытный саблезуб', rarity: 'epic', price: 680, w: 500, img: iUrl + '-9a81dlWLwJ2UUGcVs_nsVtzdOEdtWwKGZZLQHTxDZ7I56KU0Zwwo4NUX4oFJZEHLbXH5ApeO4YmlhxYQknCRvCo04DEVlxkKgoWeabqOANf-r-fFAzE2ci0m1-Gnvn8Oq_UmnhD-Ml0juz--YXygED6-UY6ZGv0cYOQd1M4NVnV_Va4xe25hp-0u53LnSdh7D5iuyisxxw-LgA1' },
+                { name: 'PP-Bizon | Суд Анубиса', rarity: 'epic', price: 550, w: 500, img: iUrl + '-9a81dlWLwJ2UUGcVs_nsVtzdOEdtWwKGZZLQHTxDZ7I56KU0Zwwo4NUX4oFJZEHLbXH5ApeO4YmlhxYQknCRvCo04DEVlxkKgoWeabqOANf-r-fFAzE2ci0m1-Gnvn8Oq_UmnhD-Ml0juz--YXygED6-UY6ZGv0cYOQd1M4NVnV_Va4xe25hp-0u53LnSdh7D5iuyisxxw-LgA1' },
+                { name: 'Nova | Скоростной зверь', rarity: 'epic', price: 620, w: 500, img: iUrl + '-9a81dlWLwJ2UUGcVs_nsVtzdOEdtWwKGZZLQHTxDZ7I56KU0Zwwo4NUX4oFJZEHLbXH5ApeO4YmlhxYQknCRvCo04DEVlxkKgoWeabqOANf-r-fFAzE2ci0m1-Gnvn8Oq_UmnhD-Ml0juz--YXygED6-UY6ZGv0cYOQd1M4NVnV_Va4xe25hp-0u53LnSdh7D5iuyisxxw-LgA1' },
+                { name: 'XM1014 | Транквилизатор', rarity: 'epic', price: 580, w: 500, img: iUrl + '-9a81dlWLwJ2UUGcVs_nsVtzdOEdtWwKGZZLQHTxDZ7I56KU0Zwwo4NUX4oFJZEHLbXH5ApeO4YmlhxYQknCRvCo04DEVlxkKgoWeabqOANf-r-fFAzE2ci0mVW0m_7zO6_cmnhD-Ml0juz--YXygED6rUo4ZWvydoXAdFQ3aF7X-QC7krjug8PpuM-bmiNluCEr4SuMzBywiAYMMLK8kEtnwQ' },
+
+                // 5 средних (все равно не окупают 5000 звезд)
+                { name: 'AK-47 | Огненный змей', rarity: 'secret', price: 2500, w: 40, img: iUrl + '-9a81dlWLwJ2UUGcVs_nsVtzdOEdtWwKGZZLQHTxDZ7I56KU0Zwwo4NUX4oFJZEHLbXH5ApeO4YmlhxYQknCRvCo04DEVlxkKgpot7HxfDhjxszJemkV09-5lpKKqPrxN7LEmyVQ7MEpiLuX8I-k3QXsqRVlZ2GlIYPBdwc4YlvR8gTqxebpg8W_vM-fmHdgvCUn4CndmQv3308mIukPGA' },
+                { name: 'M4A4 | Император', rarity: 'secret', price: 2000, w: 50, img: iUrl + '-9a81dlWLwJ2UUGcVs_nsVtzdOEdtWwKGZZLQHTxDZ7I56KU0Zwwo4NUX4oFJZEHLbXH5ApeO4YmlhxYQknCRvCo04DEVlxkKgpou-6kejhjxszfjDFW-M6_hIW0mOX1N-Luhm5V18N0hf-WpInwi0GxqkMqMDivcY6XcAM3M12CqVm-xLjrhJG9ucicyHFkvCMq-z-DyK9O_-kQ' },
+                { name: 'AWP | Удар молнии', rarity: 'secret', price: 3000, w: 30, img: iUrl + '-9a81dlWLwJ2UUGcVs_nsVtzdOEdtWwKGZZLQHTxDZ7I56KU0Zwwo4NUX4oFJZEHLbXH5ApeO4YmlhxYQknCRvCo04DEVlxkKgpot621FAR17PLfYQJD_9W7m5a0mvLwOq7c2D4G65xz0-2ZpNmti1fl_xVva1qwclc8cApvMInmDQa2yO_m0ZTtutjMmHVg7HYr-z-DyI4jCxsS' },
+                { name: 'Desert Eagle | Фенек', rarity: 'secret', price: 3500, w: 25, img: iUrl + '-9a81dlWLwJ2UUGcVs_nsVtzdOEdtWwKGZZLQHTxDZ7I56KU0Zwwo4NUX4oFJZEHLbXH5ApeO4YmlhxYQknCRvCo04DEVlxkKgoWeabqOANf-r-fFAzE2ci0m1-Gnvn8Oq_UmnhD-Ml0juz--YXygED6-UY6ZGv0cYOQd1M4NVnV_Va4xe25hp-0u53LnSdh7D5iuyisxxw-LgA1' },
+                { name: 'M4A1-S | Шедевр', rarity: 'secret', price: 2800, w: 40, img: iUrl + '-9a81dlWLwJ2UUGcVs_nsVtzdOEdtWwKGZZLQHTxDZ7I56KU0Zwwo4NUX4oFJZEHLbXH5ApeO4YmlhxYQknCRvCo04DEVlxkKgpou-6kcjhozezbDzhN09G_k4if2a_8ML_Wk1Rcw1RlvjnHptqki1Gy_kM9azqlcYSWJwE2Z1zT8wTswLy8hJHu7ZTNzSBk73Nw5nfVmhS1hxwfbeK5yQ' },
+
+                // 2 диких топа
+                { name: 'AWP | История о драконе', rarity: 'gold', price: 50000, w: 2, img: iUrl + '-9a81dlWLwJ2UUGcVs_nsVtzdOEdtWwKGZZLQHTxDZ7I56KU0Zwwo4NUX4oFJZEHLbXH5ApeO4YmlhxYQknCRvCo04DEVlxkKgpot621FAR17PLfYQJD_9W7m5a0mvLwOq7c2D4G65xz0-2ZpNmti1fl_xVva1qwclc8cApvMInmDQa2yO_m0ZTtutjMmHVg7HYr-z-DyI4jCxsS' },
+                { name: 'M4A4 | Вой', rarity: 'gold', price: 40000, w: 1, img: iUrl + '-9a81dlWLwJ2UUGcVs_nsVtzdOEdtWwKGZZLQHTxDZ7I56KU0Zwwo4NUX4oFJZEHLbXH5ApeO4YmlhxYQknCRvCo04DEVlxkKgpou-6kejhz2v_Nfz5H_uO1gb-Gw_alIITfn2xZ_Ishi-TOyoD8j1yg-RE_Y2-gdYTHdlRvMFiE-APqxOu805Hu6pzByCAx7CMg-z-DyG2q8QvP' }
+            ],
+            // 8. ОЛДСКУЛ КЕЙС (Окуп 18%. Цена: 150)
+            old_school: [
+                // 20 старых и дешевых скинов (ширпотреб из 2013-2014)
+                { name: 'M4A4 | Зірка', rarity: 'common', price: 10, w: 800, img: iUrl + '-9a81dlWLwJ2UUGcVs_nsVtzdOEdtWwKGZZLQHTxDZ7I56KU0Zwwo4NUX4oFJZEHLbXH5ApeO4YmlhxYQknCRvCo04DEVlxkKgpou-6kejhjxszfjDFW-M6_hIW0mOX1N-Luhm5V18N0hf-WpInwi0GxqkMqMDivcY6XcAM3M12CqVm-xLjrhJG9ucicyHFkvCMq-z-DyK9O_-kQ' },
+                { name: 'AK-47 | Хищник', rarity: 'common', price: 15, w: 800, img: iUrl + '-9a81dlWLwJ2UUGcVs_nsVtzdOEdtWwKGZZLQHTxDZ7I56KU0Zwwo4NUX4oFJZEHLbXH5ApeO4YmlhxYQknCRvCo04DEVlxkKgpot7HxfDhjxszJemkV09-5lpKKqPrxN7LEmyVQ7MEpiLuX8I-k3QXsqRVlZ2GlIYPBdwc4YlvR8gTqxebpg8W_vM-fmHdgvCUn4CndmQv3308mIukPGA' },
+                { name: 'AWP | Змеиная кожа', rarity: 'common', price: 20, w: 800, img: iUrl + '-9a81dlWLwJ2UUGcVs_nsVtzdOEdtWwKGZZLQHTxDZ7I56KU0Zwwo4NUX4oFJZEHLbXH5ApeO4YmlhxYQknCRvCo04DEVlxkKgpot621FAR17PLfYQJD_9W7m5a0mvLwOq7c2D4G65xz0-2ZpNmti1fl_xVva1qwclc8cApvMInmDQa2yO_m0ZTtutjMmHVg7HYr-z-DyI4jCxsS' },
+                { name: 'Desert Eagle | Гипноз', rarity: 'common', price: 25, w: 800, img: iUrl + '-9a81dlWLwJ2UUGcVs_nsVtzdOEdtWwKGZZLQHTxDZ7I56KU0Zwwo4NUX4oFJZEHLbXH5ApeO4YmlhxYQknCRvCo04DEVlxkKgoWeabqOANf-r-fFAzE2ci0m1-Gnvn8Oq_UmnhD-Ml0juz--YXygED6-UY6ZGv0cYOQd1M4NVnV_Va4xe25hp-0u53LnSdh7D5iuyisxxw-LgA1' },
+                { name: 'Glock-18 | Градиент', rarity: 'common', price: 18, w: 800, img: iUrl + '-9a81dlWLwJ2UUGcVs_nsVtzdOEdtWwKGZZLQHTxDZ7I56KU0Zwwo4NUX4oFJZEHLbXH5ApeO4YmlhxYQknCRvCo04DEVlxkKgposbaqKAxf0v73dDBH_t26q4S0m_7zO6_ck29Y_cg_2-yQpYmi0FHg-kQ9Yjv0JoGddlU2MA3Z8lLqyOnpgZDt6Z3JzyAwuSIj5HuJlwv330_5p-Rviw' },
+                { name: 'USP-S | Темная вода', rarity: 'common', price: 15, w: 800, img: iUrl + '-9a81dlWLwJ2UUGcVs_nsVtzdOEdtWwKGZZLQHTxDZ7I56KU0Zwwo4NUX4oFJZEHLbXH5ApeO4YmlhxYQknCRvCo04DEVlxkKgpoo6m1FBRp3_bGcTpN0924q4iOluHtfevVxzhTscYpjOqV8NmkigC280o6MWyicNXHdAQ2ZV3T8gToyOzrgp7ovpjMySNkpGB8snP8q3sA' },
+                { name: 'P250 | Пятно', rarity: 'common', price: 8, w: 800, img: iUrl + '-9a81dlWLwJ2UUGcVs_nsVtzdOEdtWwKGZZLQHTxDZ7I56KU0Zwwo4NUX4oFJZEHLbXH5ApeO4YmlhxYQknCRvCo04DEVlxkKgpopujwezhhwAMzcTFR09C_k4mClvnmJb_VlT1RsMhwj-zDo9j0hAawq0E9Z2r1JdTGdwU7ZwzRqVC5lrm60JO5vc7Pmns3pGB8stMvYt7U' },
+                { name: 'P90 | Мертвая хватка', rarity: 'common', price: 12, w: 800, img: iUrl + '-9a81dlWLwJ2UUGcVs_nsVtzdOEdtWwKGZZLQHTxDZ7I56KU0Zwwo4NUX4oFJZEHLbXH5ApeO4YmlhxYQknCRvCo04DEVlxkKgoWeabqOANf-r-fFAzE2ci0mVW0m_7zO6_cmnhD-Ml0juz--YXygED6rUo4ZWvydoXAdFQ3aF7X-QC7krjug8PpuM-bmiNluCEr4SuMzBywiAYMMLK8kEtnwQ' },
+                { name: 'FAMAS | Остаточное изображение', rarity: 'common', price: 14, w: 800, img: iUrl + '-9a81dlWLwJ2UUGcVs_nsVtzdOEdtWwKGZZLQHTxDZ7I56KU0Zwwo4NUX4oFJZEHLbXH5ApeO4YmlhxYQknCRvCo04DEVlxkKgoWeabqOANf-r-fFAzE2ci0mVW0m_7zO6_cmnhD-Ml0juz--YXygED6rUo4ZWvydoXAdFQ3aF7X-QC7krjug8PpuM-bmiNluCEr4SuMzBywiAYMMLK8kEtnwQ' },
+                { name: 'MAC-10 | Градиент', rarity: 'common', price: 10, w: 800, img: iUrl + '-9a81dlWLwJ2UUGcVs_nsVtzdOEdtWwKGZZLQHTxDZ7I56KU0Zwwo4NUX4oFJZEHLbXH5ApeO4YmlhxYQknCRvCo04DEVlxkKgoWeabqOANf-r-fFAzE2ci0m1-Gnvn8Oq_UmnhD-Ml0juz--YXygED6-UY6ZGv0cYOQd1M4NVnV_Va4xe25hp-0u53LnSdh7D5iuyisxxw-LgA1' },
+                { name: 'M4A1-S | Темная вода', rarity: 'common', price: 20, w: 800, img: iUrl + '-9a81dlWLwJ2UUGcVs_nsVtzdOEdtWwKGZZLQHTxDZ7I56KU0Zwwo4NUX4oFJZEHLbXH5ApeO4YmlhxYQknCRvCo04DEVlxkKgpou-6kcjhozezbDzhN09G_k4if2a_8ML_Wk1Rcw1RlvjnHptqki1Gy_kM9azqlcYSWJwE2Z1zT8wTswLy8hJHu7ZTNzSBk73Nw5nfVmhS1hxwfbeK5yQ' },
+                { name: 'AK-47 | Цвет джунглей', rarity: 'common', price: 18, w: 800, img: iUrl + '-9a81dlWLwJ2UUGcVs_nsVtzdOEdtWwKGZZLQHTxDZ7I56KU0Zwwo4NUX4oFJZEHLbXH5ApeO4YmlhxYQknCRvCo04DEVlxkKgpot7HxfDhjxszJemkV09-5lpKKqPrxN7LEmyVQ7MEpiLuX8I-k3QXsqRVlZ2GlIYPBdwc4YlvR8gTqxebpg8W_vM-fmHdgvCUn4CndmQv3308mIukPGA' },
+                { name: 'AWP | Бамбуковый лес', rarity: 'common', price: 15, w: 800, img: iUrl + '-9a81dlWLwJ2UUGcVs_nsVtzdOEdtWwKGZZLQHTxDZ7I56KU0Zwwo4NUX4oFJZEHLbXH5ApeO4YmlhxYQknCRvCo04DEVlxkKgpot621FAR17PLfYQJD_9W7m5a0mvLwOq7c2D4G65xz0-2ZpNmti1fl_xVva1qwclc8cApvMInmDQa2yO_m0ZTtutjMmHVg7HYr-z-DyI4jCxsS' },
+                { name: 'Desert Eagle | Осадок', rarity: 'common', price: 12, w: 800, img: iUrl + '-9a81dlWLwJ2UUGcVs_nsVtzdOEdtWwKGZZLQHTxDZ7I56KU0Zwwo4NUX4oFJZEHLbXH5ApeO4YmlhxYQknCRvCo04DEVlxkKgoWeabqOANf-r-fFAzE2ci0m1-Gnvn8Oq_UmnhD-Ml0juz--YXygED6-UY6ZGv0cYOQd1M4NVnV_Va4xe25hp-0u53LnSdh7D5iuyisxxw-LgA1' },
+                { name: 'Glock-18 | Татуировка дракона', rarity: 'common', price: 25, w: 800, img: iUrl + '-9a81dlWLwJ2UUGcVs_nsVtzdOEdtWwKGZZLQHTxDZ7I56KU0Zwwo4NUX4oFJZEHLbXH5ApeO4YmlhxYQknCRvCo04DEVlxkKgposbaqKAxf0v73dDBH_t26q4S0m_7zO6_ck29Y_cg_2-yQpYmi0FHg-kQ9Yjv0JoGddlU2MA3Z8lLqyOnpgZDt6Z3JzyAwuSIj5HuJlwv330_5p-Rviw' },
+                { name: 'USP-S | Сыворотка', rarity: 'common', price: 20, w: 800, img: iUrl + '-9a81dlWLwJ2UUGcVs_nsVtzdOEdtWwKGZZLQHTxDZ7I56KU0Zwwo4NUX4oFJZEHLbXH5ApeO4YmlhxYQknCRvCo04DEVlxkKgpoo6m1FBRp3_bGcTpN0924q4iOluHtfevVxzhTscYpjOqV8NmkigC280o6MWyicNXHdAQ2ZV3T8gToyOzrgp7ovpjMySNkpGB8snP8q3sA' },
+                { name: 'P250 | Ядерная угроза', rarity: 'common', price: 18, w: 800, img: iUrl + '-9a81dlWLwJ2UUGcVs_nsVtzdOEdtWwKGZZLQHTxDZ7I56KU0Zwwo4NUX4oFJZEHLbXH5ApeO4YmlhxYQknCRvCo04DEVlxkKgpopujwezhhwAMzcTFR09C_k4mClvnmJb_VlT1RsMhwj-zDo9j0hAawq0E9Z2r1JdTGdwU7ZwzRqVC5lrm60JO5vc7Pmns3pGB8stMvYt7U' },
+                { name: 'P90 | Изумрудный дракон', rarity: 'common', price: 22, w: 800, img: iUrl + '-9a81dlWLwJ2UUGcVs_nsVtzdOEdtWwKGZZLQHTxDZ7I56KU0Zwwo4NUX4oFJZEHLbXH5ApeO4YmlhxYQknCRvCo04DEVlxkKgoWeabqOANf-r-fFAzE2ci0mVW0m_7zO6_cmnhD-Ml0juz--YXygED6rUo4ZWvydoXAdFQ3aF7X-QC7krjug8PpuM-bmiNluCEr4SuMzBywiAYMMLK8kEtnwQ' },
+                { name: 'FAMAS | Истребитель', rarity: 'common', price: 16, w: 800, img: iUrl + '-9a81dlWLwJ2UUGcVs_nsVtzdOEdtWwKGZZLQHTxDZ7I56KU0Zwwo4NUX4oFJZEHLbXH5ApeO4YmlhxYQknCRvCo04DEVlxkKgoWeabqOANf-r-fFAzE2ci0mVW0m_7zO6_cmnhD-Ml0juz--YXygED6rUo4ZWvydoXAdFQ3aF7X-QC7krjug8PpuM-bmiNluCEr4SuMzBywiAYMMLK8kEtnwQ' },
+                { name: 'MAC-10 | Янтарный градиент', rarity: 'common', price: 12, w: 800, img: iUrl + '-9a81dlWLwJ2UUGcVs_nsVtzdOEdtWwKGZZLQHTxDZ7I56KU0Zwwo4NUX4oFJZEHLbXH5ApeO4YmlhxYQknCRvCo04DEVlxkKgoWeabqOANf-r-fFAzE2ci0m1-Gnvn8Oq_UmnhD-Ml0juz--YXygED6-UY6ZGv0cYOQd1M4NVnV_Va4xe25hp-0u53LnSdh7D5iuyisxxw-LgA1' },
+
+                // 5 средних
+                { name: 'AK-47 | Черный глянец', rarity: 'rare', price: 70, w: 50, img: iUrl + '-9a81dlWLwJ2UUGcVs_nsVtzdOEdtWwKGZZLQHTxDZ7I56KU0Zwwo4NUX4oFJZEHLbXH5ApeO4YmlhxYQknCRvCo04DEVlxkKgpot7HxfDhjxszJemkV09-5lpKKqPrxN7LEmyVQ7MEpiLuX8I-k3QXsqRVlZ2GlIYPBdwc4YlvR8gTqxebpg8W_vM-fmHdgvCUn4CndmQv3308mIukPGA' },
+                { name: 'M4A4 | Радиационная опасность', rarity: 'rare', price: 65, w: 50, img: iUrl + '-9a81dlWLwJ2UUGcVs_nsVtzdOEdtWwKGZZLQHTxDZ7I56KU0Zwwo4NUX4oFJZEHLbXH5ApeO4YmlhxYQknCRvCo04DEVlxkKgpou-6kejhjxszfjDFW-M6_hIW0mOX1N-Luhm5V18N0hf-WpInwi0GxqkMqMDivcY6XcAM3M12CqVm-xLjrhJG9ucicyHFkvCMq-z-DyK9O_-kQ' },
+                { name: 'AWP | Розовый слон', rarity: 'rare', price: 80, w: 50, img: iUrl + '-9a81dlWLwJ2UUGcVs_nsVtzdOEdtWwKGZZLQHTxDZ7I56KU0Zwwo4NUX4oFJZEHLbXH5ApeO4YmlhxYQknCRvCo04DEVlxkKgpot621FAR17PLfYQJD_9W7m5a0mvLwOq7c2D4G65xz0-2ZpNmti1fl_xVva1qwclc8cApvMInmDQa2yO_m0ZTtutjMmHVg7HYr-z-DyI4jCxsS' },
+                { name: 'Desert Eagle | Бласт', rarity: 'rare', price: 90, w: 40, img: iUrl + '-9a81dlWLwJ2UUGcVs_nsVtzdOEdtWwKGZZLQHTxDZ7I56KU0Zwwo4NUX4oFJZEHLbXH5ApeO4YmlhxYQknCRvCo04DEVlxkKgoWeabqOANf-r-fFAzE2ci0m1-Gnvn8Oq_UmnhD-Ml0juz--YXygED6-UY6ZGv0cYOQd1M4NVnV_Va4xe25hp-0u53LnSdh7D5iuyisxxw-LgA1' },
+                { name: 'P2000 | Океанская пена', rarity: 'rare', price: 60, w: 50, img: iUrl + '-9a81dlWLwJ2UUGcVs_nsVtzdOEdtWwKGZZLQHTxDZ7I56KU0Zwwo4NUX4oFJZEHLbXH5ApeO4YmlhxYQknCRvCo04DEVlxkKgoWeabqOANf-r-fFAzE2ci0m1-Gnvn8Oq_UmnhD-Ml0juz--YXygED6-UY6ZGv0cYOQd1M4NVnV_Va4xe25hp-0u53LnSdh7D5iuyisxxw-LgA1' },
+
+                // 2 топа
+                { name: 'AK-47 | Огненный змей', rarity: 'epic', price: 1500, w: 2, img: iUrl + '-9a81dlWLwJ2UUGcVs_nsVtzdOEdtWwKGZZLQHTxDZ7I56KU0Zwwo4NUX4oFJZEHLbXH5ApeO4YmlhxYQknCRvCo04DEVlxkKgpot7HxfDhjxszJemkV09-5lpKKqPrxN7LEmyVQ7MEpiLuX8I-k3QXsqRVlZ2GlIYPBdwc4YlvR8gTqxebpg8W_vM-fmHdgvCUn4CndmQv3308mIukPGA' },
+                { name: 'M4A4 | Вой', rarity: 'gold', price: 3000, w: 1, img: iUrl + '-9a81dlWLwJ2UUGcVs_nsVtzdOEdtWwKGZZLQHTxDZ7I56KU0Zwwo4NUX4oFJZEHLbXH5ApeO4YmlhxYQknCRvCo04DEVlxkKgpou-6kejhz2v_Nfz5H_uO1gb-Gw_alIITfn2xZ_Ishi-TOyoD8j1yg-RE_Y2-gdYTHdlRvMFiE-APqxOu805Hu6pzByCAx7CMg-z-DyG2q8QvP' }
+            ],
+
+            // 9. BLUE DYE (Синий Кейс. Окуп 22%. Цена: 80)
+            blue_dye: [
+                // 20 дешевых синих скинов
+                { name: 'M4A1-S | Чистая вода', rarity: 'common', price: 8, w: 800, img: iUrl + '-9a81dlWLwJ2UUGcVs_nsVtzdOEdtWwKGZZLQHTxDZ7I56KU0Zwwo4NUX4oFJZEHLbXH5ApeO4YmlhxYQknCRvCo04DEVlxkKgpou-6kcjhozezbDzhN09G_k4if2a_8ML_Wk1Rcw1RlvjnHptqki1Gy_kM9azqlcYSWJwE2Z1zT8wTswLy8hJHu7ZTNzSBk73Nw5nfVmhS1hxwfbeK5yQ' },
+                { name: 'AK-47 | Синий глянец', rarity: 'common', price: 10, w: 800, img: iUrl + '-9a81dlWLwJ2UUGcVs_nsVtzdOEdtWwKGZZLQHTxDZ7I56KU0Zwwo4NUX4oFJZEHLbXH5ApeO4YmlhxYQknCRvCo04DEVlxkKgpot7HxfDhjxszJemkV09-5lpKKqPrxN7LEmyVQ7MEpiLuX8I-k3QXsqRVlZ2GlIYPBdwc4YlvR8gTqxebpg8W_vM-fmHdgvCUn4CndmQv3308mIukPGA' },
+                { name: 'AWP | Солнце в знаке Льва', rarity: 'common', price: 12, w: 800, img: iUrl + '-9a81dlWLwJ2UUGcVs_nsVtzdOEdtWwKGZZLQHTxDZ7I56KU0Zwwo4NUX4oFJZEHLbXH5ApeO4YmlhxYQknCRvCo04DEVlxkKgpot621FAR17PLfYQJD_9W7m5a0mvLwOq7c2D4G65xz0-2ZpNmti1fl_xVva1qwclc8cApvMInmDQa2yO_m0ZTtutjMmHVg7HYr-z-DyI4jCxsS' },
+                { name: 'Desert Eagle | Ночная буря', rarity: 'common', price: 7, w: 800, img: iUrl + '-9a81dlWLwJ2UUGcVs_nsVtzdOEdtWwKGZZLQHTxDZ7I56KU0Zwwo4NUX4oFJZEHLbXH5ApeO4YmlhxYQknCRvCo04DEVlxkKgoWeabqOANf-r-fFAzE2ci0m1-Gnvn8Oq_UmnhD-Ml0juz--YXygED6-UY6ZGv0cYOQd1M4NVnV_Va4xe25hp-0u53LnSdh7D5iuyisxxw-LgA1' },
+                { name: 'Glock-18 | Синяя трещина', rarity: 'common', price: 6, w: 800, img: iUrl + '-9a81dlWLwJ2UUGcVs_nsVtzdOEdtWwKGZZLQHTxDZ7I56KU0Zwwo4NUX4oFJZEHLbXH5ApeO4YmlhxYQknCRvCo04DEVlxkKgposbaqKAxf0v73dDBH_t26q4S0m_7zO6_ck29Y_cg_2-yQpYmi0FHg-kQ9Yjv0JoGddlU2MA3Z8lLqyOnpgZDt6Z3JzyAwuSIj5HuJlwv330_5p-Rviw' },
+                { name: 'USP-S | Королевский синий', rarity: 'common', price: 9, w: 800, img: iUrl + '-9a81dlWLwJ2UUGcVs_nsVtzdOEdtWwKGZZLQHTxDZ7I56KU0Zwwo4NUX4oFJZEHLbXH5ApeO4YmlhxYQknCRvCo04DEVlxkKgpoo6m1FBRp3_bGcTpN0924q4iOluHtfevVxzhTscYpjOqV8NmkigC280o6MWyicNXHdAQ2ZV3T8gToyOzrgp7ovpjMySNkpGB8snP8q3sA' },
+                { name: 'P250 | Рябь', rarity: 'common', price: 5, w: 800, img: iUrl + '-9a81dlWLwJ2UUGcVs_nsVtzdOEdtWwKGZZLQHTxDZ7I56KU0Zwwo4NUX4oFJZEHLbXH5ApeO4YmlhxYQknCRvCo04DEVlxkKgpopujwezhhwAMzcTFR09C_k4mClvnmJb_VlT1RsMhwj-zDo9j0hAawq0E9Z2r1JdTGdwU7ZwzRqVC5lrm60JO5vc7Pmns3pGB8stMvYt7U' },
+                { name: 'UMP-45 | Индиго', rarity: 'common', price: 4, w: 800, img: iUrl + '-9a81dlWLwJ2UUGcVs_nsVtzdOEdtWwKGZZLQHTxDZ7I56KU0Zwwo4NUX4oFJZEHLbXH5ApeO4YmlhxYQknCRvCo04DEVlxkKgoWeabqOANf-r-fFAzE2ci0mVW0m_7zO6_cmnhD-Ml0juz--YXygED6rUo4ZWvydoXAdFQ3aF7X-QC7krjug8PpuM-bmiNluCEr4SuMzBywiAYMMLK8kEtnwQ' },
+                { name: 'MP7 | Океанская пена', rarity: 'common', price: 6, w: 800, img: iUrl + '-9a81dlWLwJ2UUGcVs_nsVtzdOEdtWwKGZZLQHTxDZ7I56KU0Zwwo4NUX4oFJZEHLbXH5ApeO4YmlhxYQknCRvCo04DEVlxkKgoWeabqOANf-r-fFAzE2ci0mVW0m_7zO6_cmnhD-Ml0juz--YXygED6rUo4ZWvydoXAdFQ3aF7X-QC7krjug8PpuM-bmiNluCEr4SuMzBywiAYMMLK8kEtnwQ' },
+                { name: 'Nova | Буря', rarity: 'common', price: 5, w: 800, img: iUrl + '-9a81dlWLwJ2UUGcVs_nsVtzdOEdtWwKGZZLQHTxDZ7I56KU0Zwwo4NUX4oFJZEHLbXH5ApeO4YmlhxYQknCRvCo04DEVlxkKgpou7umeldf0Ob3fDxBvYyJi46Hk_7nI7DflWhR7MZ1iurEpdSn1AbkrRRoY2GldoScd1RraFiE_FLtxO-6jZPq6ZufzSA1s3Qm-z-DyP9rK2A' },
+                { name: 'SG 553 | Алоха', rarity: 'common', price: 4, w: 800, img: iUrl + '-9a81dlWLwJ2UUGcVs_nsVtzdOEdtWwKGZZLQHTxDZ7I56KU0Zwwo4NUX4oFJZEHLbXH5ApeO4YmlhxYQknCRvCo04DEVlxkKgoWeabqOANf-r-fFAzE2ci0m1-Gnvn8Oq_UmnhD-Ml0juz--YXygED6-UY6ZGv0cYOQd1M4NVnV_Va4xe25hp-0u53LnSdh7D5iuyisxxw-LgA1' },
+                { name: 'AUG | Аристократ', rarity: 'common', price: 7, w: 800, img: iUrl + '-9a81dlWLwJ2UUGcVs_nsVtzdOEdtWwKGZZLQHTxDZ7I56KU0Zwwo4NUX4oFJZEHLbXH5ApeO4YmlhxYQknCRvCo04DEVlxkKgoWeabqOANf-r-fFAzE2ci0m1-Gnvn8Oq_UmnhD-Ml0juz--YXygED6-UY6ZGv0cYOQd1M4NVnV_Va4xe25hp-0u53LnSdh7D5iuyisxxw-LgA1' },
+                { name: 'Galil AR | Синий титан', rarity: 'common', price: 5, w: 800, img: iUrl + '-9a81dlWLwJ2UUGcVs_nsVtzdOEdtWwKGZZLQHTxDZ7I56KU0Zwwo4NUX4oFJZEHLbXH5ApeO4YmlhxYQknCRvCo04DEVlxkKgoWeabqOANf-r-fFAzE2ci0m1-Gnvn8Oq_UmnhD-Ml0juz--YXygED6-UY6ZGv0cYOQd1M4NVnV_Va4xe25hp-0u53LnSdh7D5iuyisxxw-LgA1' },
+                { name: 'FAMAS | Циан', rarity: 'common', price: 6, w: 800, img: iUrl + '-9a81dlWLwJ2UUGcVs_nsVtzdOEdtWwKGZZLQHTxDZ7I56KU0Zwwo4NUX4oFJZEHLbXH5ApeO4YmlhxYQknCRvCo04DEVlxkKgoWeabqOANf-r-fFAzE2ci0mVW0m_7zO6_cmnhD-Ml0juz--YXygED6rUo4ZWvydoXAdFQ3aF7X-QC7krjug8PpuM-bmiNluCEr4SuMzBywiAYMMLK8kEtnwQ' },
+                { name: 'P90 | Слепое пятно', rarity: 'common', price: 8, w: 800, img: iUrl + '-9a81dlWLwJ2UUGcVs_nsVtzdOEdtWwKGZZLQHTxDZ7I56KU0Zwwo4NUX4oFJZEHLbXH5ApeO4YmlhxYQknCRvCo04DEVlxkKgoWeabqOANf-r-fFAzE2ci0mVW0m_7zO6_cmnhD-Ml0juz--YXygED6rUo4ZWvydoXAdFQ3aF7X-QC7krjug8PpuM-bmiNluCEr4SuMzBywiAYMMLK8kEtnwQ' },
+                { name: 'MAC-10 | Океанские мотивы', rarity: 'common', price: 4, w: 800, img: iUrl + '-9a81dlWLwJ2UUGcVs_nsVtzdOEdtWwKGZZLQHTxDZ7I56KU0Zwwo4NUX4oFJZEHLbXH5ApeO4YmlhxYQknCRvCo04DEVlxkKgoWeabqOANf-r-fFAzE2ci0m1-Gnvn8Oq_UmnhD-Ml0juz--YXygED6-UY6ZGv0cYOQd1M4NVnV_Va4xe25hp-0u53LnSdh7D5iuyisxxw-LgA1' },
+                { name: 'SSG 08 | Пучина', rarity: 'common', price: 7, w: 800, img: iUrl + '-9a81dlWLwJ2UUGcVs_nsVtzdOEdtWwKGZZLQHTxDZ7I56KU0Zwwo4NUX4oFJZEHLbXH5ApeO4YmlhxYQknCRvCo04DEVlxkKgoWeabqOANf-r-fFAzE2ci0m1-Gnvn8Oq_UmnhD-Ml0juz--YXygED6-UY6ZGv0cYOQd1M4NVnV_Va4xe25hp-0u53LnSdh7D5iuyisxxw-LgA1' },
+                { name: 'Five-SeveN | Патина', rarity: 'common', price: 5, w: 800, img: iUrl + '-9a81dlWLwJ2UUGcVs_nsVtzdOEdtWwKGZZLQHTxDZ7I56KU0Zwwo4NUX4oFJZEHLbXH5ApeO4YmlhxYQknCRvCo04DEVlxkKgoWeabqOANf-r-fFAzE2ci0m1-Gnvn8Oq_UmnhD-Ml0juz--YXygED6-UY6ZGv0cYOQd1M4NVnV_Va4xe25hp-0u53LnSdh7D5iuyisxxw-LgA1' },
+                { name: 'Tec-9 | Ледяной колпак', rarity: 'common', price: 4, w: 800, img: iUrl + '-9a81dlWLwJ2UUGcVs_nsVtzdOEdtWwKGZZLQHTxDZ7I56KU0Zwwo4NUX4oFJZEHLbXH5ApeO4YmlhxYQknCRvCo04DEVlxkKgoWeabqOANf-r-fFAzE2ci0mVW0m_7zO6_cmnhD-Ml0juz--YXygED6rUo4ZWvydoXAdFQ3aF7X-QC7krjug8PpuM-bmiNluCEr4SuMzBywiAYMMLK8kEtnwQ' },
+                { name: 'CZ75-Auto | Отравленный дротик', rarity: 'common', price: 6, w: 800, img: iUrl + '-9a81dlWLwJ2UUGcVs_nsVtzdOEdtWwKGZZLQHTxDZ7I56KU0Zwwo4NUX4oFJZEHLbXH5ApeO4YmlhxYQknCRvCo04DEVlxkKgoWeabqOANf-r-fFAzE2ci0mVW0m_7zO6_cmnhD-Ml0juz--YXygED6rUo4ZWvydoXAdFQ3aF7X-QC7krjug8PpuM-bmiNluCEr4SuMzBywiAYMMLK8kEtnwQ' },
+
+                // 5 средних
+                { name: 'AK-47 | Синий ламинат', rarity: 'rare', price: 40, w: 50, img: iUrl + '-9a81dlWLwJ2UUGcVs_nsVtzdOEdtWwKGZZLQHTxDZ7I56KU0Zwwo4NUX4oFJZEHLbXH5ApeO4YmlhxYQknCRvCo04DEVlxkKgpot7HxfDhjxszJemkV09-5lpKKqPrxN7LEmyVQ7MEpiLuX8I-k3QXsqRVlZ2GlIYPBdwc4YlvR8gTqxebpg8W_vM-fmHdgvCUn4CndmQv3308mIukPGA' },
+                { name: 'M4A1-S | Икар', rarity: 'rare', price: 50, w: 40, img: iUrl + '-9a81dlWLwJ2UUGcVs_nsVtzdOEdtWwKGZZLQHTxDZ7I56KU0Zwwo4NUX4oFJZEHLbXH5ApeO4YmlhxYQknCRvCo04DEVlxkKgpou-6kcjhozezbDzhN09G_k4if2a_8ML_Wk1Rcw1RlvjnHptqki1Gy_kM9azqlcYSWJwE2Z1zT8wTswLy8hJHu7ZTNzSBk73Nw5nfVmhS1hxwfbeK5yQ' },
+                { name: 'AWP | Кортисейра', rarity: 'rare', price: 45, w: 50, img: iUrl + '-9a81dlWLwJ2UUGcVs_nsVtzdOEdtWwKGZZLQHTxDZ7I56KU0Zwwo4NUX4oFJZEHLbXH5ApeO4YmlhxYQknCRvCo04DEVlxkKgpot621FAR17PLfYQJD_9W7m5a0mvLwOq7c2D4G65xz0-2ZpNmti1fl_xVva1qwclc8cApvMInmDQa2yO_m0ZTtutjMmHVg7HYr-z-DyI4jCxsS' },
+                { name: 'Desert Eagle | Ночь', rarity: 'rare', price: 35, w: 60, img: iUrl + '-9a81dlWLwJ2UUGcVs_nsVtzdOEdtWwKGZZLQHTxDZ7I56KU0Zwwo4NUX4oFJZEHLbXH5ApeO4YmlhxYQknCRvCo04DEVlxkKgoWeabqOANf-r-fFAzE2ci0m1-Gnvn8Oq_UmnhD-Ml0juz--YXygED6-UY6ZGv0cYOQd1M4NVnV_Va4xe25hp-0u53LnSdh7D5iuyisxxw-LgA1' },
+                { name: 'USP-S | Синяя кровь', rarity: 'rare', price: 30, w: 60, img: iUrl + '-9a81dlWLwJ2UUGcVs_nsVtzdOEdtWwKGZZLQHTxDZ7I56KU0Zwwo4NUX4oFJZEHLbXH5ApeO4YmlhxYQknCRvCo04DEVlxkKgpoo6m1FBRp3_bGcTpN0924q4iOluHtfevVxzhTscYpjOqV8NmkigC280o6MWyicNXHdAQ2ZV3T8gToyOzrgp7ovpjMySNkpGB8snP8q3sA' },
+
+                // 2 топа
+                { name: 'M4A4 | Посейдон', rarity: 'epic', price: 600, w: 2, img: iUrl + '-9a81dlWLwJ2UUGcVs_nsVtzdOEdtWwKGZZLQHTxDZ7I56KU0Zwwo4NUX4oFJZEHLbXH5ApeO4YmlhxYQknCRvCo04DEVlxkKgpou-6kejhjxszfjDFW-M6_hIW0mOX1N-Luhm5V18N0hf-WpInwi0GxqkMqMDivcY6XcAM3M12CqVm-xLjrhJG9ucicyHFkvCMq-z-DyK9O_-kQ' },
+                { name: 'AWP | Медуза', rarity: 'gold', price: 1000, w: 1, img: iUrl + '-9a81dlWLwJ2UUGcVs_nsVtzdOEdtWwKGZZLQHTxDZ7I56KU0Zwwo4NUX4oFJZEHLbXH5ApeO4YmlhxYQknCRvCo04DEVlxkKgpot621FAR17PLfYQJD_9W7m5a0mvLwOq7c2D4G65xz0-2ZpNmti1fl_xVva1qwclc8cApvMInmDQa2yO_m0ZTtutjMmHVg7HYr-z-DyI4jCxsS' }
+            ],
+
+            // 10. RED LINE (Красная Линия. Окуп 14%. Цена: 600)
+            red_line: [
+                // 20 красных/черных скинов (уводят в минус)
+                { name: 'AK-47 | Орбита, вер. 01', rarity: 'common', price: 40, w: 800, img: iUrl + '-9a81dlWLwJ2UUGcVs_nsVtzdOEdtWwKGZZLQHTxDZ7I56KU0Zwwo4NUX4oFJZEHLbXH5ApeO4YmlhxYQknCRvCo04DEVlxkKgpot7HxfDhjxszJemkV09-5lpKKqPrxN7LEmyVQ7MEpiLuX8I-k3QXsqRVlZ2GlIYPBdwc4YlvR8gTqxebpg8W_vM-fmHdgvCUn4CndmQv3308mIukPGA' },
+                { name: 'M4A4 | Злобный дайме', rarity: 'common', price: 35, w: 800, img: iUrl + '-9a81dlWLwJ2UUGcVs_nsVtzdOEdtWwKGZZLQHTxDZ7I56KU0Zwwo4NUX4oFJZEHLbXH5ApeO4YmlhxYQknCRvCo04DEVlxkKgpou-6kejhjxszfjDFW-M6_hIW0mOX1N-Luhm5V18N0hf-WpInwi0GxqkMqMDivcY6XcAM3M12CqVm-xLjrhJG9ucicyHFkvCMq-z-DyK9O_-kQ' },
+                { name: 'AWP | Красная линия', rarity: 'common', price: 50, w: 800, img: iUrl + '-9a81dlWLwJ2UUGcVs_nsVtzdOEdtWwKGZZLQHTxDZ7I56KU0Zwwo4NUX4oFJZEHLbXH5ApeO4YmlhxYQknCRvCo04DEVlxkKgpot621FAR17PLfYQJD_9W7m5a0mvLwOq7c2D4G65xz0-2ZpNmti1fl_xVva1qwclc8cApvMInmDQa2yO_m0ZTtutjMmHVg7HYr-z-DyI4jCxsS' },
+                { name: 'Desert Eagle | Кровавая паутина', rarity: 'common', price: 30, w: 800, img: iUrl + '-9a81dlWLwJ2UUGcVs_nsVtzdOEdtWwKGZZLQHTxDZ7I56KU0Zwwo4NUX4oFJZEHLbXH5ApeO4YmlhxYQknCRvCo04DEVlxkKgoWeabqOANf-r-fFAzE2ci0m1-Gnvn8Oq_UmnhD-Ml0juz--YXygED6-UY6ZGv0cYOQd1M4NVnV_Va4xe25hp-0u53LnSdh7D5iuyisxxw-LgA1' },
+                { name: 'Glock-18 | Карамельное яблоко', rarity: 'common', price: 25, w: 800, img: iUrl + '-9a81dlWLwJ2UUGcVs_nsVtzdOEdtWwKGZZLQHTxDZ7I56KU0Zwwo4NUX4oFJZEHLbXH5ApeO4YmlhxYQknCRvCo04DEVlxkKgposbaqKAxf0v73dDBH_t26q4S0m_7zO6_ck29Y_cg_2-yQpYmi0FHg-kQ9Yjv0JoGddlU2MA3Z8lLqyOnpgZDt6Z3JzyAwuSIj5HuJlwv330_5p-Rviw' },
+                { name: 'USP-S | Кровавый тигр', rarity: 'common', price: 20, w: 800, img: iUrl + '-9a81dlWLwJ2UUGcVs_nsVtzdOEdtWwKGZZLQHTxDZ7I56KU0Zwwo4NUX4oFJZEHLbXH5ApeO4YmlhxYQknCRvCo04DEVlxkKgpoo6m1FBRp3_bGcTpN0924q4iOluHtfevVxzhTscYpjOqV8NmkigC280o6MWyicNXHdAQ2ZV3T8gToyOzrgp7ovpjMySNkpGB8snP8q3sA' },
+                { name: 'P250 | Муэртос', rarity: 'common', price: 28, w: 800, img: iUrl + '-9a81dlWLwJ2UUGcVs_nsVtzdOEdtWwKGZZLQHTxDZ7I56KU0Zwwo4NUX4oFJZEHLbXH5ApeO4YmlhxYQknCRvCo04DEVlxkKgpopujwezhhwAMzcTFR09C_k4mClvnmJb_VlT1RsMhwj-zDo9j0hAawq0E9Z2r1JdTGdwU7ZwzRqVC5lrm60JO5vc7Pmns3pGB8stMvYt7U' },
+                { name: 'UMP-45 | Радиоактивные осадки', rarity: 'common', price: 15, w: 800, img: iUrl + '-9a81dlWLwJ2UUGcVs_nsVtzdOEdtWwKGZZLQHTxDZ7I56KU0Zwwo4NUX4oFJZEHLbXH5ApeO4YmlhxYQknCRvCo04DEVlxkKgoWeabqOANf-r-fFAzE2ci0mVW0m_7zO6_cmnhD-Ml0juz--YXygED6rUo4ZWvydoXAdFQ3aF7X-QC7krjug8PpuM-bmiNluCEr4SuMzBywiAYMMLK8kEtnwQ' },
+                { name: 'MP7 | Кровавая паутина', rarity: 'common', price: 22, w: 800, img: iUrl + '-9a81dlWLwJ2UUGcVs_nsVtzdOEdtWwKGZZLQHTxDZ7I56KU0Zwwo4NUX4oFJZEHLbXH5ApeO4YmlhxYQknCRvCo04DEVlxkKgoWeabqOANf-r-fFAzE2ci0mVW0m_7zO6_cmnhD-Ml0juz--YXygED6rUo4ZWvydoXAdFQ3aF7X-QC7krjug8PpuM-bmiNluCEr4SuMzBywiAYMMLK8kEtnwQ' },
+                { name: 'Nova | Карамельное яблоко', rarity: 'common', price: 18, w: 800, img: iUrl + '-9a81dlWLwJ2UUGcVs_nsVtzdOEdtWwKGZZLQHTxDZ7I56KU0Zwwo4NUX4oFJZEHLbXH5ApeO4YmlhxYQknCRvCo04DEVlxkKgpou7umeldf0Ob3fDxBvYyJi46Hk_7nI7DflWhR7MZ1iurEpdSn1AbkrRRoY2GldoScd1RraFiE_FLtxO-6jZPq6ZufzSA1s3Qm-z-DyP9rK2A' },
+                { name: 'SG 553 | Сайрекс', rarity: 'common', price: 25, w: 800, img: iUrl + '-9a81dlWLwJ2UUGcVs_nsVtzdOEdtWwKGZZLQHTxDZ7I56KU0Zwwo4NUX4oFJZEHLbXH5ApeO4YmlhxYQknCRvCo04DEVlxkKgoWeabqOANf-r-fFAzE2ci0m1-Gnvn8Oq_UmnhD-Ml0juz--YXygED6-UY6ZGv0cYOQd1M4NVnV_Va4xe25hp-0u53LnSdh7D5iuyisxxw-LgA1' },
+                { name: 'AUG | Сид Мид', rarity: 'common', price: 20, w: 800, img: iUrl + '-9a81dlWLwJ2UUGcVs_nsVtzdOEdtWwKGZZLQHTxDZ7I56KU0Zwwo4NUX4oFJZEHLbXH5ApeO4YmlhxYQknCRvCo04DEVlxkKgoWeabqOANf-r-fFAzE2ci0m1-Gnvn8Oq_UmnhD-Ml0juz--YXygED6-UY6ZGv0cYOQd1M4NVnV_Va4xe25hp-0u53LnSdh7D5iuyisxxw-LgA1' },
+                { name: 'Galil AR | Сигнал', rarity: 'common', price: 15, w: 800, img: iUrl + '-9a81dlWLwJ2UUGcVs_nsVtzdOEdtWwKGZZLQHTxDZ7I56KU0Zwwo4NUX4oFJZEHLbXH5ApeO4YmlhxYQknCRvCo04DEVlxkKgoWeabqOANf-r-fFAzE2ci0m1-Gnvn8Oq_UmnhD-Ml0juz--YXygED6-UY6ZGv0cYOQd1M4NVnV_Va4xe25hp-0u53LnSdh7D5iuyisxxw-LgA1' },
+                { name: 'FAMAS | Выживший', rarity: 'common', price: 12, w: 800, img: iUrl + '-9a81dlWLwJ2UUGcVs_nsVtzdOEdtWwKGZZLQHTxDZ7I56KU0Zwwo4NUX4oFJZEHLbXH5ApeO4YmlhxYQknCRvCo04DEVlxkKgoWeabqOANf-r-fFAzE2ci0mVW0m_7zO6_cmnhD-Ml0juz--YXygED6rUo4ZWvydoXAdFQ3aF7X-QC7krjug8PpuM-bmiNluCEr4SuMzBywiAYMMLK8kEtnwQ' },
+                { name: 'P90 | Хладнокровный', rarity: 'common', price: 30, w: 800, img: iUrl + '-9a81dlWLwJ2UUGcVs_nsVtzdOEdtWwKGZZLQHTxDZ7I56KU0Zwwo4NUX4oFJZEHLbXH5ApeO4YmlhxYQknCRvCo04DEVlxkKgoWeabqOANf-r-fFAzE2ci0mVW0m_7zO6_cmnhD-Ml0juz--YXygED6rUo4ZWvydoXAdFQ3aF7X-QC7krjug8PpuM-bmiNluCEr4SuMzBywiAYMMLK8kEtnwQ' },
+                { name: 'MAC-10 | Карамельное яблоко', rarity: 'common', price: 15, w: 800, img: iUrl + '-9a81dlWLwJ2UUGcVs_nsVtzdOEdtWwKGZZLQHTxDZ7I56KU0Zwwo4NUX4oFJZEHLbXH5ApeO4YmlhxYQknCRvCo04DEVlxkKgoWeabqOANf-r-fFAzE2ci0m1-Gnvn8Oq_UmnhD-Ml0juz--YXygED6-UY6ZGv0cYOQd1M4NVnV_Va4xe25hp-0u53LnSdh7D5iuyisxxw-LgA1' },
+                { name: 'SSG 08 | Кровь в воде', rarity: 'common', price: 45, w: 800, img: iUrl + '-9a81dlWLwJ2UUGcVs_nsVtzdOEdtWwKGZZLQHTxDZ7I56KU0Zwwo4NUX4oFJZEHLbXH5ApeO4YmlhxYQknCRvCo04DEVlxkKgoWeabqOANf-r-fFAzE2ci0m1-Gnvn8Oq_UmnhD-Ml0juz--YXygED6-UY6ZGv0cYOQd1M4NVnV_Va4xe25hp-0u53LnSdh7D5iuyisxxw-LgA1' },
+                { name: 'Five-SeveN | Городская опасность', rarity: 'common', price: 10, w: 800, img: iUrl + '-9a81dlWLwJ2UUGcVs_nsVtzdOEdtWwKGZZLQHTxDZ7I56KU0Zwwo4NUX4oFJZEHLbXH5ApeO4YmlhxYQknCRvCo04DEVlxkKgoWeabqOANf-r-fFAzE2ci0m1-Gnvn8Oq_UmnhD-Ml0juz--YXygED6-UY6ZGv0cYOQd1M4NVnV_Va4xe25hp-0u53LnSdh7D5iuyisxxw-LgA1' },
+                { name: 'Tec-9 | Айзек', rarity: 'common', price: 12, w: 800, img: iUrl + '-9a81dlWLwJ2UUGcVs_nsVtzdOEdtWwKGZZLQHTxDZ7I56KU0Zwwo4NUX4oFJZEHLbXH5ApeO4YmlhxYQknCRvCo04DEVlxkKgoWeabqOANf-r-fFAzE2ci0mVW0m_7zO6_cmnhD-Ml0juz--YXygED6rUo4ZWvydoXAdFQ3aF7X-QC7krjug8PpuM-bmiNluCEr4SuMzBywiAYMMLK8kEtnwQ' },
+                { name: 'CZ75-Auto | Кровавая паутина', rarity: 'common', price: 14, w: 800, img: iUrl + '-9a81dlWLwJ2UUGcVs_nsVtzdOEdtWwKGZZLQHTxDZ7I56KU0Zwwo4NUX4oFJZEHLbXH5ApeO4YmlhxYQknCRvCo04DEVlxkKgoWeabqOANf-r-fFAzE2ci0mVW0m_7zO6_cmnhD-Ml0juz--YXygED6rUo4ZWvydoXAdFQ3aF7X-QC7krjug8PpuM-bmiNluCEr4SuMzBywiAYMMLK8kEtnwQ' },
+
+                // 5 средних
+                { name: 'AK-47 | Красная линия', rarity: 'rare', price: 200, w: 50, img: iUrl + '-9a81dlWLwJ2UUGcVs_nsVtzdOEdtWwKGZZLQHTxDZ7I56KU0Zwwo4NUX4oFJZEHLbXH5ApeO4YmlhxYQknCRvCo04DEVlxkKgpot7HxfDhjxszJemkV09-5lpKKqPrxN7LEmyVQ7MEpiLuX8I-k3QXsqRVlZ2GlIYPBdwc4YlvR8gTqxebpg8W_vM-fmHdgvCUn4CndmQv3308mIukPGA' },
+                { name: 'M4A1-S | Сайрекс', rarity: 'rare', price: 250, w: 40, img: iUrl + '-9a81dlWLwJ2UUGcVs_nsVtzdOEdtWwKGZZLQHTxDZ7I56KU0Zwwo4NUX4oFJZEHLbXH5ApeO4YmlhxYQknCRvCo04DEVlxkKgpou-6kcjhozezbDzhN09G_k4if2a_8ML_Wk1Rcw1RlvjnHptqki1Gy_kM9azqlcYSWJwE2Z1zT8wTswLy8hJHu7ZTNzSBk73Nw5nfVmhS1hxwfbeK5yQ' },
+                { name: 'AWP | Бах', rarity: 'rare', price: 300, w: 30, img: iUrl + '-9a81dlWLwJ2UUGcVs_nsVtzdOEdtWwKGZZLQHTxDZ7I56KU0Zwwo4NUX4oFJZEHLbXH5ApeO4YmlhxYQknCRvCo04DEVlxkKgpot621FAR17PLfYQJD_9W7m5a0mvLwOq7c2D4G65xz0-2ZpNmti1fl_xVva1qwclc8cApvMInmDQa2yO_m0ZTtutjMmHVg7HYr-z-DyI4jCxsS' },
+                { name: 'Desert Eagle | Буря на закате', rarity: 'rare', price: 350, w: 25, img: iUrl + '-9a81dlWLwJ2UUGcVs_nsVtzdOEdtWwKGZZLQHTxDZ7I56KU0Zwwo4NUX4oFJZEHLbXH5ApeO4YmlhxYQknCRvCo04DEVlxkKgoWeabqOANf-r-fFAzE2ci0m1-Gnvn8Oq_UmnhD-Ml0juz--YXygED6-UY6ZGv0cYOQd1M4NVnV_Va4xe25hp-0u53LnSdh7D5iuyisxxw-LgA1' },
+                { name: 'USP-S | Убийство', rarity: 'rare', price: 180, w: 50, img: iUrl + '-9a81dlWLwJ2UUGcVs_nsVtzdOEdtWwKGZZLQHTxDZ7I56KU0Zwwo4NUX4oFJZEHLbXH5ApeO4YmlhxYQknCRvCo04DEVlxkKgpoo6m1FBRp3_bGcTpN0924q4iOluHtfevVxzhTscYpjOqV8NmkigC280o6MWyicNXHdAQ2ZV3T8gToyOzrgp7ovpjMySNkpGB8snP8q3sA' },
+
+                // 2 топа
+                { name: 'AK-47 | Кровавый спорт', rarity: 'epic', price: 2800, w: 2, img: iUrl + '-9a81dlWLwJ2UUGcVs_nsVtzdOEdtWwKGZZLQHTxDZ7I56KU0Zwwo4NUX4oFJZEHLbXH5ApeO4YmlhxYQknCRvCo04DEVlxkKgpot7HxfDhjxszJemkV09-5lpKKqPrxN7LEmyVQ7MEpiLuX8I-k3QXsqRVlZ2GlIYPBdwc4YlvR8gTqxebpg8W_vM-fmHdgvCUn4CndmQv3308mIukPGA' },
+                { name: 'M4A4 | Вой', rarity: 'gold', price: 5000, w: 1, img: iUrl + '-9a81dlWLwJ2UUGcVs_nsVtzdOEdtWwKGZZLQHTxDZ7I56KU0Zwwo4NUX4oFJZEHLbXH5ApeO4YmlhxYQknCRvCo04DEVlxkKgpou-6kejhz2v_Nfz5H_uO1gb-Gw_alIITfn2xZ_Ishi-TOyoD8j1yg-RE_Y2-gdYTHdlRvMFiE-APqxOu805Hu6pzByCAx7CMg-z-DyG2q8QvP' }
+            ],
+
+            // 11. GOLD LUCK (Золотая Удача. Окуп 10%. Цена: 1000)
+            gold_luck: [
+                // 20 желтых/оранжевых скинов (уводят в минус)
+                { name: 'AK-47 | Сафариная сетка', rarity: 'common', price: 40, w: 800, img: iUrl + '-9a81dlWLwJ2UUGcVs_nsVtzdOEdtWwKGZZLQHTxDZ7I56KU0Zwwo4NUX4oFJZEHLbXH5ApeO4YmlhxYQknCRvCo04DEVlxkKgpot7HxfDhjxszJemkV09-5lpKKqPrxN7LEmyVQ7MEpiLuX8I-k3QXsqRVlZ2GlIYPBdwc4YlvR8gTqxebpg8W_vM-fmHdgvCUn4CndmQv3308mIukPGA' },
+                { name: 'M4A4 | Пустынная атака', rarity: 'common', price: 50, w: 800, img: iUrl + '-9a81dlWLwJ2UUGcVs_nsVtzdOEdtWwKGZZLQHTxDZ7I56KU0Zwwo4NUX4oFJZEHLbXH5ApeO4YmlhxYQknCRvCo04DEVlxkKgpou-6kejhjxszfjDFW-M6_hIW0mOX1N-Luhm5V18N0hf-WpInwi0GxqkMqMDivcY6XcAM3M12CqVm-xLjrhJG9ucicyHFkvCMq-z-DyK9O_-kQ' },
+                { name: 'AWP | Бог червей', rarity: 'common', price: 45, w: 800, img: iUrl + '-9a81dlWLwJ2UUGcVs_nsVtzdOEdtWwKGZZLQHTxDZ7I56KU0Zwwo4NUX4oFJZEHLbXH5ApeO4YmlhxYQknCRvCo04DEVlxkKgpot621FAR17PLfYQJD_9W7m5a0mvLwOq7c2D4G65xz0-2ZpNmti1fl_xVva1qwclc8cApvMInmDQa2yO_m0ZTtutjMmHVg7HYr-z-DyI4jCxsS' },
+                { name: 'Desert Eagle | Бронзовая декорация', rarity: 'common', price: 30, w: 800, img: iUrl + '-9a81dlWLwJ2UUGcVs_nsVtzdOEdtWwKGZZLQHTxDZ7I56KU0Zwwo4NUX4oFJZEHLbXH5ApeO4YmlhxYQknCRvCo04DEVlxkKgoWeabqOANf-r-fFAzE2ci0m1-Gnvn8Oq_UmnhD-Ml0juz--YXygED6-UY6ZGv0cYOQd1M4NVnV_Va4xe25hp-0u53LnSdh7D5iuyisxxw-LgA1' },
+                { name: 'Glock-18 | Реактор', rarity: 'common', price: 55, w: 800, img: iUrl + '-9a81dlWLwJ2UUGcVs_nsVtzdOEdtWwKGZZLQHTxDZ7I56KU0Zwwo4NUX4oFJZEHLbXH5ApeO4YmlhxYQknCRvCo04DEVlxkKgposbaqKAxf0v73dDBH_t26q4S0m_7zO6_ck29Y_cg_2-yQpYmi0FHg-kQ9Yjv0JoGddlU2MA3Z8lLqyOnpgZDt6Z3JzyAwuSIj5HuJlwv330_5p-Rviw' },
+                { name: 'USP-S | Орион', rarity: 'common', price: 60, w: 800, img: iUrl + '-9a81dlWLwJ2UUGcVs_nsVtzdOEdtWwKGZZLQHTxDZ7I56KU0Zwwo4NUX4oFJZEHLbXH5ApeO4YmlhxYQknCRvCo04DEVlxkKgpoo6m1FBRp3_bGcTpN0924q4iOluHtfevVxzhTscYpjOqV8NmkigC280o6MWyicNXHdAQ2ZV3T8gToyOzrgp7ovpjMySNkpGB8snP8q3sA' },
+                { name: 'P250 | Сверхновая', rarity: 'common', price: 25, w: 800, img: iUrl + '-9a81dlWLwJ2UUGcVs_nsVtzdOEdtWwKGZZLQHTxDZ7I56KU0Zwwo4NUX4oFJZEHLbXH5ApeO4YmlhxYQknCRvCo04DEVlxkKgpopujwezhhwAMzcTFR09C_k4mClvnmJb_VlT1RsMhwj-zDo9j0hAawq0E9Z2r1JdTGdwU7ZwzRqVC5lrm60JO5vc7Pmns3pGB8stMvYt7U' },
+                { name: 'UMP-45 | Облучение', rarity: 'common', price: 20, w: 800, img: iUrl + '-9a81dlWLwJ2UUGcVs_nsVtzdOEdtWwKGZZLQHTxDZ7I56KU0Zwwo4NUX4oFJZEHLbXH5ApeO4YmlhxYQknCRvCo04DEVlxkKgoWeabqOANf-r-fFAzE2ci0mVW0m_7zO6_cmnhD-Ml0juz--YXygED6rUo4ZWvydoXAdFQ3aF7X-QC7krjug8PpuM-bmiNluCEr4SuMzBywiAYMMLK8kEtnwQ' },
+                { name: 'MP7 | Горностай', rarity: 'common', price: 22, w: 800, img: iUrl + '-9a81dlWLwJ2UUGcVs_nsVtzdOEdtWwKGZZLQHTxDZ7I56KU0Zwwo4NUX4oFJZEHLbXH5ApeO4YmlhxYQknCRvCo04DEVlxkKgoWeabqOANf-r-fFAzE2ci0mVW0m_7zO6_cmnhD-Ml0juz--YXygED6rUo4ZWvydoXAdFQ3aF7X-QC7krjug8PpuM-bmiNluCEr4SuMzBywiAYMMLK8kEtnwQ' },
+                { name: 'Nova | Орех', rarity: 'common', price: 18, w: 800, img: iUrl + '-9a81dlWLwJ2UUGcVs_nsVtzdOEdtWwKGZZLQHTxDZ7I56KU0Zwwo4NUX4oFJZEHLbXH5ApeO4YmlhxYQknCRvCo04DEVlxkKgpou7umeldf0Ob3fDxBvYyJi46Hk_7nI7DflWhR7MZ1iurEpdSn1AbkrRRoY2GldoScd1RraFiE_FLtxO-6jZPq6ZufzSA1s3Qm-z-DyP9rK2A' },
+                { name: 'SG 553 | Бульдозер', rarity: 'common', price: 35, w: 800, img: iUrl + '-9a81dlWLwJ2UUGcVs_nsVtzdOEdtWwKGZZLQHTxDZ7I56KU0Zwwo4NUX4oFJZEHLbXH5ApeO4YmlhxYQknCRvCo04DEVlxkKgoWeabqOANf-r-fFAzE2ci0m1-Gnvn8Oq_UmnhD-Ml0juz--YXygED6-UY6ZGv0cYOQd1M4NVnV_Va4xe25hp-0u53LnSdh7D5iuyisxxw-LgA1' },
+                { name: 'AUG | Бенгальский тигр', rarity: 'common', price: 40, w: 800, img: iUrl + '-9a81dlWLwJ2UUGcVs_nsVtzdOEdtWwKGZZLQHTxDZ7I56KU0Zwwo4NUX4oFJZEHLbXH5ApeO4YmlhxYQknCRvCo04DEVlxkKgoWeabqOANf-r-fFAzE2ci0m1-Gnvn8Oq_UmnhD-Ml0juz--YXygED6-UY6ZGv0cYOQd1M4NVnV_Va4xe25hp-0u53LnSdh7D5iuyisxxw-LgA1' },
+                { name: 'Galil AR | Невозмутимость', rarity: 'common', price: 25, w: 800, img: iUrl + '-9a81dlWLwJ2UUGcVs_nsVtzdOEdtWwKGZZLQHTxDZ7I56KU0Zwwo4NUX4oFJZEHLbXH5ApeO4YmlhxYQknCRvCo04DEVlxkKgoWeabqOANf-r-fFAzE2ci0m1-Gnvn8Oq_UmnhD-Ml0juz--YXygED6-UY6ZGv0cYOQd1M4NVnV_Va4xe25hp-0u53LnSdh7D5iuyisxxw-LgA1' },
+                { name: 'FAMAS | Нейронная сеть', rarity: 'common', price: 30, w: 800, img: iUrl + '-9a81dlWLwJ2UUGcVs_nsVtzdOEdtWwKGZZLQHTxDZ7I56KU0Zwwo4NUX4oFJZEHLbXH5ApeO4YmlhxYQknCRvCo04DEVlxkKgoWeabqOANf-r-fFAzE2ci0mVW0m_7zO6_cmnhD-Ml0juz--YXygED6rUo4ZWvydoXAdFQ3aF7X-QC7krjug8PpuM-bmiNluCEr4SuMzBywiAYMMLK8kEtnwQ' },
+                { name: 'P90 | Азимов', rarity: 'common', price: 45, w: 800, img: iUrl + '-9a81dlWLwJ2UUGcVs_nsVtzdOEdtWwKGZZLQHTxDZ7I56KU0Zwwo4NUX4oFJZEHLbXH5ApeO4YmlhxYQknCRvCo04DEVlxkKgoWeabqOANf-r-fFAzE2ci0mVW0m_7zO6_cmnhD-Ml0juz--YXygED6rUo4ZWvydoXAdFQ3aF7X-QC7krjug8PpuM-bmiNluCEr4SuMzBywiAYMMLK8kEtnwQ' },
+                { name: 'MAC-10 | Жар', rarity: 'common', price: 20, w: 800, img: iUrl + '-9a81dlWLwJ2UUGcVs_nsVtzdOEdtWwKGZZLQHTxDZ7I56KU0Zwwo4NUX4oFJZEHLbXH5ApeO4YmlhxYQknCRvCo04DEVlxkKgoWeabqOANf-r-fFAzE2ci0m1-Gnvn8Oq_UmnhD-Ml0juz--YXygED6-UY6ZGv0cYOQd1M4NVnV_Va4xe25hp-0u53LnSdh7D5iuyisxxw-LgA1' },
+                { name: 'SSG 08 | Мертвые головы', rarity: 'common', price: 15, w: 800, img: iUrl + '-9a81dlWLwJ2UUGcVs_nsVtzdOEdtWwKGZZLQHTxDZ7I56KU0Zwwo4NUX4oFJZEHLbXH5ApeO4YmlhxYQknCRvCo04DEVlxkKgoWeabqOANf-r-fFAzE2ci0m1-Gnvn8Oq_UmnhD-Ml0juz--YXygED6-UY6ZGv0cYOQd1M4NVnV_Va4xe25hp-0u53LnSdh7D5iuyisxxw-LgA1' },
+                { name: 'Five-SeveN | Медная галактика', rarity: 'common', price: 35, w: 800, img: iUrl + '-9a81dlWLwJ2UUGcVs_nsVtzdOEdtWwKGZZLQHTxDZ7I56KU0Zwwo4NUX4oFJZEHLbXH5ApeO4YmlhxYQknCRvCo04DEVlxkKgoWeabqOANf-r-fFAzE2ci0m1-Gnvn8Oq_UmnhD-Ml0juz--YXygED6-UY6ZGv0cYOQd1M4NVnV_Va4xe25hp-0u53LnSdh7D5iuyisxxw-LgA1' },
+                { name: 'Tec-9 | Терраса', rarity: 'common', price: 40, w: 800, img: iUrl + '-9a81dlWLwJ2UUGcVs_nsVtzdOEdtWwKGZZLQHTxDZ7I56KU0Zwwo4NUX4oFJZEHLbXH5ApeO4YmlhxYQknCRvCo04DEVlxkKgoWeabqOANf-r-fFAzE2ci0mVW0m_7zO6_cmnhD-Ml0juz--YXygED6rUo4ZWvydoXAdFQ3aF7X-QC7krjug8PpuM-bmiNluCEr4SuMzBywiAYMMLK8kEtnwQ' },
+                { name: 'CZ75-Auto | Желтый жакет', rarity: 'common', price: 30, w: 800, img: iUrl + '-9a81dlWLwJ2UUGcVs_nsVtzdOEdtWwKGZZLQHTxDZ7I56KU0Zwwo4NUX4oFJZEHLbXH5ApeO4YmlhxYQknCRvCo04DEVlxkKgoWeabqOANf-r-fFAzE2ci0mVW0m_7zO6_cmnhD-Ml0juz--YXygED6rUo4ZWvydoXAdFQ3aF7X-QC7krjug8PpuM-bmiNluCEr4SuMzBywiAYMMLK8kEtnwQ' },
+
+                // 5 средних
+                { name: 'AK-47 | Легион Анубиса', rarity: 'rare', price: 300, w: 50, img: iUrl + '-9a81dlWLwJ2UUGcVs_nsVtzdOEdtWwKGZZLQHTxDZ7I56KU0Zwwo4NUX4oFJZEHLbXH5ApeO4YmlhxYQknCRvCo04DEVlxkKgpot7HxfDhjxszJemkV09-5lpKKqPrxN7LEmyVQ7MEpiLuX8I-k3QXsqRVlZ2GlIYPBdwc4YlvR8gTqxebpg8W_vM-fmHdgvCUn4CndmQv3308mIukPGA' },
+                { name: 'M4A4 | Базз Килл', rarity: 'rare', price: 280, w: 50, img: iUrl + '-9a81dlWLwJ2UUGcVs_nsVtzdOEdtWwKGZZLQHTxDZ7I56KU0Zwwo4NUX4oFJZEHLbXH5ApeO4YmlhxYQknCRvCo04DEVlxkKgpou-6kejhjxszfjDFW-M6_hIW0mOX1N-Luhm5V18N0hf-WpInwi0GxqkMqMDivcY6XcAM3M12CqVm-xLjrhJG9ucicyHFkvCMq-z-DyK9O_-kQ' },
+                { name: 'AWP | Азимов', rarity: 'rare', price: 350, w: 40, img: iUrl + '-9a81dlWLwJ2UUGcVs_nsVtzdOEdtWwKGZZLQHTxDZ7I56KU0Zwwo4NUX4oFJZEHLbXH5ApeO4YmlhxYQknCRvCo04DEVlxkKgpot621FAR17PLfYQJD_9W7m5a0mvLwOq7c2D4G65xz0-2ZpNmti1fl_xVva1qwclc8cApvMInmDQa2yO_m0ZTtutjMmHVg7HYr-z-DyI4jCxsS' },
+                { name: 'Desert Eagle | Золотой карп', rarity: 'rare', price: 400, w: 30, img: iUrl + '-9a81dlWLwJ2UUGcVs_nsVtzdOEdtWwKGZZLQHTxDZ7I56KU0Zwwo4NUX4oFJZEHLbXH5ApeO4YmlhxYQknCRvCo04DEVlxkKgoWeabqOANf-r-fFAzE2ci0m1-Gnvn8Oq_UmnhD-Ml0juz--YXygED6-UY6ZGv0cYOQd1M4NVnV_Va4xe25hp-0u53LnSdh7D5iuyisxxw-LgA1' },
+                { name: 'M4A1-S | Золотая спираль', rarity: 'rare', price: 250, w: 50, img: iUrl + '-9a81dlWLwJ2UUGcVs_nsVtzdOEdtWwKGZZLQHTxDZ7I56KU0Zwwo4NUX4oFJZEHLbXH5ApeO4YmlhxYQknCRvCo04DEVlxkKgpou-6kcjhozezbDzhN09G_k4if2a_8ML_Wk1Rcw1RlvjnHptqki1Gy_kM9azqlcYSWJwE2Z1zT8wTswLy8hJHu7ZTNzSBk73Nw5nfVmhS1hxwfbeK5yQ' },
+
+                // 2 топа
+                { name: 'AWP | История о драконе', rarity: 'gold', price: 6000, w: 2, img: iUrl + '-9a81dlWLwJ2UUGcVs_nsVtzdOEdtWwKGZZLQHTxDZ7I56KU0Zwwo4NUX4oFJZEHLbXH5ApeO4YmlhxYQknCRvCo04DEVlxkKgpot621FAR17PLfYQJD_9W7m5a0mvLwOq7c2D4G65xz0-2ZpNmti1fl_xVva1qwclc8cApvMInmDQa2yO_m0ZTtutjMmHVg7HYr-z-DyI4jCxsS' },
+                { name: 'Нож-бабочка | Легенды', rarity: 'gold', price: 8000, w: 1, img: iUrl + '-9a81dlWLwJ2UUGcVs_nsVtzdOEdtWwKGZZLQHTxDZ7I56KU0Zwwo4NUX4oFJZEHLbXH5ApeO4YmlhxYQknCRvCo04DEVlxkKgpovbSsLQJf2OTEcgFO_c-1mY-DkvbiM7_Sl29U18l4jeHVu43zjAex_UQ9az_xd4SVI1c3aFrQrFS8le2-gMK97c_InHpqsykgtH6OlhC-1B0eb7NshqWACQLJDgY1U1w' }
+            ],
+            // 12. AGENT CASE (Агенты. Окуп 20%. Цена: 300)
+            agent_case: [
+                // 20 дешевых пушек спецназа и террористов
+                { name: 'USP-S | Проводник', rarity: 'common', price: 15, w: 800, img: iUrl + '-9a81dlWLwJ2UUGcVs_nsVtzdOEdtWwKGZZLQHTxDZ7I56KU0Zwwo4NUX4oFJZEHLbXH5ApeO4YmlhxYQknCRvCo04DEVlxkKgpoo6m1FBRp3_bGcTpN0924q4iOluHtfevVxzhTscYpjOqV8NmkigC280o6MWyicNXHdAQ2ZV3T8gToyOzrgp7ovpjMySNkpGB8snP8q3sA' },
+                { name: 'M4A4 | Магний', rarity: 'common', price: 20, w: 800, img: iUrl + '-9a81dlWLwJ2UUGcVs_nsVtzdOEdtWwKGZZLQHTxDZ7I56KU0Zwwo4NUX4oFJZEHLbXH5ApeO4YmlhxYQknCRvCo04DEVlxkKgpou-6kejhjxszfjDFW-M6_hIW0mOX1N-Luhm5V18N0hf-WpInwi0GxqkMqMDivcY6XcAM3M12CqVm-xLjrhJG9ucicyHFkvCMq-z-DyK9O_-kQ' },
+                { name: 'AK-47 | Элитное снаряжение', rarity: 'common', price: 25, w: 800, img: iUrl + '-9a81dlWLwJ2UUGcVs_nsVtzdOEdtWwKGZZLQHTxDZ7I56KU0Zwwo4NUX4oFJZEHLbXH5ApeO4YmlhxYQknCRvCo04DEVlxkKgpot7HxfDhjxszJemkV09-5lpKKqPrxN7LEmyVQ7MEpiLuX8I-k3QXsqRVlZ2GlIYPBdwc4YlvR8gTqxebpg8W_vM-fmHdgvCUn4CndmQv3308mIukPGA' },
+                { name: 'AWP | Гадюка', rarity: 'common', price: 30, w: 800, img: iUrl + '-9a81dlWLwJ2UUGcVs_nsVtzdOEdtWwKGZZLQHTxDZ7I56KU0Zwwo4NUX4oFJZEHLbXH5ApeO4YmlhxYQknCRvCo04DEVlxkKgpot621FAR17PLfYQJD_9W7m5a0mvLwOq7c2D4G65xz0-2ZpNmti1fl_xVva1qwclc8cApvMInmDQa2yO_m0ZTtutjMmHVg7HYr-z-DyI4jCxsS' },
+                { name: 'Glock-18 | Жертвенность', rarity: 'common', price: 10, w: 800, img: iUrl + '-9a81dlWLwJ2UUGcVs_nsVtzdOEdtWwKGZZLQHTxDZ7I56KU0Zwwo4NUX4oFJZEHLbXH5ApeO4YmlhxYQknCRvCo04DEVlxkKgposbaqKAxf0v73dDBH_t26q4S0m_7zO6_ck29Y_cg_2-yQpYmi0FHg-kQ9Yjv0JoGddlU2MA3Z8lLqyOnpgZDt6Z3JzyAwuSIj5HuJlwv330_5p-Rviw' },
+                { name: 'Desert Eagle | Метеорит', rarity: 'common', price: 18, w: 800, img: iUrl + '-9a81dlWLwJ2UUGcVs_nsVtzdOEdtWwKGZZLQHTxDZ7I56KU0Zwwo4NUX4oFJZEHLbXH5ApeO4YmlhxYQknCRvCo04DEVlxkKgoWeabqOANf-r-fFAzE2ci0m1-Gnvn8Oq_UmnhD-Ml0juz--YXygED6-UY6ZGv0cYOQd1M4NVnV_Va4xe25hp-0u53LnSdh7D5iuyisxxw-LgA1' },
+                { name: 'P250 | Покойник', rarity: 'common', price: 12, w: 800, img: iUrl + '-9a81dlWLwJ2UUGcVs_nsVtzdOEdtWwKGZZLQHTxDZ7I56KU0Zwwo4NUX4oFJZEHLbXH5ApeO4YmlhxYQknCRvCo04DEVlxkKgpopujwezhhwAMzcTFR09C_k4mClvnmJb_VlT1RsMhwj-zDo9j0hAawq0E9Z2r1JdTGdwU7ZwzRqVC5lrm60JO5vc7Pmns3pGB8stMvYt7U' },
+                { name: 'FAMAS | Выживший', rarity: 'common', price: 14, w: 800, img: iUrl + '-9a81dlWLwJ2UUGcVs_nsVtzdOEdtWwKGZZLQHTxDZ7I56KU0Zwwo4NUX4oFJZEHLbXH5ApeO4YmlhxYQknCRvCo04DEVlxkKgoWeabqOANf-r-fFAzE2ci0mVW0m_7zO6_cmnhD-Ml0juz--YXygED6rUo4ZWvydoXAdFQ3aF7X-QC7krjug8PpuM-bmiNluCEr4SuMzBywiAYMMLK8kEtnwQ' },
+                { name: 'Galil AR | Сигнал', rarity: 'common', price: 15, w: 800, img: iUrl + '-9a81dlWLwJ2UUGcVs_nsVtzdOEdtWwKGZZLQHTxDZ7I56KU0Zwwo4NUX4oFJZEHLbXH5ApeO4YmlhxYQknCRvCo04DEVlxkKgoWeabqOANf-r-fFAzE2ci0m1-Gnvn8Oq_UmnhD-Ml0juz--YXygED6-UY6ZGv0cYOQd1M4NVnV_Va4xe25hp-0u53LnSdh7D5iuyisxxw-LgA1' },
+                { name: 'MAC-10 | Телячья кожа', rarity: 'common', price: 10, w: 800, img: iUrl + '-9a81dlWLwJ2UUGcVs_nsVtzdOEdtWwKGZZLQHTxDZ7I56KU0Zwwo4NUX4oFJZEHLbXH5ApeO4YmlhxYQknCRvCo04DEVlxkKgoWeabqOANf-r-fFAzE2ci0m1-Gnvn8Oq_UmnhD-Ml0juz--YXygED6-UY6ZGv0cYOQd1M4NVnV_Va4xe25hp-0u53LnSdh7D5iuyisxxw-LgA1' },
+                { name: 'MP7 | Броня', rarity: 'common', price: 12, w: 800, img: iUrl + '-9a81dlWLwJ2UUGcVs_nsVtzdOEdtWwKGZZLQHTxDZ7I56KU0Zwwo4NUX4oFJZEHLbXH5ApeO4YmlhxYQknCRvCo04DEVlxkKgoWeabqOANf-r-fFAzE2ci0mVW0m_7zO6_cmnhD-Ml0juz--YXygED6rUo4ZWvydoXAdFQ3aF7X-QC7krjug8PpuM-bmiNluCEr4SuMzBywiAYMMLK8kEtnwQ' },
+                { name: 'UMP-45 | Облучение', rarity: 'common', price: 15, w: 800, img: iUrl + '-9a81dlWLwJ2UUGcVs_nsVtzdOEdtWwKGZZLQHTxDZ7I56KU0Zwwo4NUX4oFJZEHLbXH5ApeO4YmlhxYQknCRvCo04DEVlxkKgoWeabqOANf-r-fFAzE2ci0mVW0m_7zO6_cmnhD-Ml0juz--YXygED6rUo4ZWvydoXAdFQ3aF7X-QC7krjug8PpuM-bmiNluCEr4SuMzBywiAYMMLK8kEtnwQ' },
+                { name: 'P90 | Воин дорог', rarity: 'common', price: 22, w: 800, img: iUrl + '-9a81dlWLwJ2UUGcVs_nsVtzdOEdtWwKGZZLQHTxDZ7I56KU0Zwwo4NUX4oFJZEHLbXH5ApeO4YmlhxYQknCRvCo04DEVlxkKgoWeabqOANf-r-fFAzE2ci0mVW0m_7zO6_cmnhD-Ml0juz--YXygED6rUo4ZWvydoXAdFQ3aF7X-QC7krjug8PpuM-bmiNluCEr4SuMzBywiAYMMLK8kEtnwQ' },
+                { name: 'Nova | Солдатик', rarity: 'common', price: 10, w: 800, img: iUrl + '-9a81dlWLwJ2UUGcVs_nsVtzdOEdtWwKGZZLQHTxDZ7I56KU0Zwwo4NUX4oFJZEHLbXH5ApeO4YmlhxYQknCRvCo04DEVlxkKgpou7umeldf0Ob3fDxBvYyJi46Hk_7nI7DflWhR7MZ1iurEpdSn1AbkrRRoY2GldoScd1RraFiE_FLtxO-6jZPq6ZufzSA1s3Qm-z-DyP9rK2A' },
+                { name: 'XM1014 | Камуфляж', rarity: 'common', price: 12, w: 800, img: iUrl + '-9a81dlWLwJ2UUGcVs_nsVtzdOEdtWwKGZZLQHTxDZ7I56KU0Zwwo4NUX4oFJZEHLbXH5ApeO4YmlhxYQknCRvCo04DEVlxkKgoWeabqOANf-r-fFAzE2ci0m1-Gnvn8Oq_UmnhD-Ml0juz--YXygED6-UY6ZGv0cYOQd1M4NVnV_Va4xe25hp-0u53LnSdh7D5iuyisxxw-LgA1' },
+                { name: 'MAG-7 | Преторианец', rarity: 'common', price: 15, w: 800, img: iUrl + '-9a81dlWLwJ2UUGcVs_nsVtzdOEdtWwKGZZLQHTxDZ7I56KU0Zwwo4NUX4oFJZEHLbXH5ApeO4YmlhxYQknCRvCo04DEVlxkKgoWeabqOANf-r-fFAzE2ci0m1-Gnvn8Oq_UmnhD-Ml0juz--YXygED6-UY6ZGv0cYOQd1M4NVnV_Va4xe25hp-0u53LnSdh7D5iuyisxxw-LgA1' },
+                { name: 'M249 | Система блокировки', rarity: 'common', price: 18, w: 800, img: iUrl + '-9a81dlWLwJ2UUGcVs_nsVtzdOEdtWwKGZZLQHTxDZ7I56KU0Zwwo4NUX4oFJZEHLbXH5ApeO4YmlhxYQknCRvCo04DEVlxkKgoWeabqOANf-r-fFAzE2ci0m1-Gnvn8Oq_UmnhD-Ml0juz--YXygED6-UY6ZGv0cYOQd1M4NVnV_Va4xe25hp-0u53LnSdh7D5iuyisxxw-LgA1' },
+                { name: 'Negev | Погрузчик', rarity: 'common', price: 16, w: 800, img: iUrl + '-9a81dlWLwJ2UUGcVs_nsVtzdOEdtWwKGZZLQHTxDZ7I56KU0Zwwo4NUX4oFJZEHLbXH5ApeO4YmlhxYQknCRvCo04DEVlxkKgoWeabqOANf-r-fFAzE2ci0m1-Gnvn8Oq_UmnhD-Ml0juz--YXygED6-UY6ZGv0cYOQd1M4NVnV_Va4xe25hp-0u53LnSdh7D5iuyisxxw-LgA1' },
+                { name: 'SG 553 | Полет', rarity: 'common', price: 20, w: 800, img: iUrl + '-9a81dlWLwJ2UUGcVs_nsVtzdOEdtWwKGZZLQHTxDZ7I56KU0Zwwo4NUX4oFJZEHLbXH5ApeO4YmlhxYQknCRvCo04DEVlxkKgoWeabqOANf-r-fFAzE2ci0mVW0m_7zO6_cmnhD-Ml0juz--YXygED6rUo4ZWvydoXAdFQ3aF7X-QC7krjug8PpuM-bmiNluCEr4SuMzBywiAYMMLK8kEtnwQ' },
+                { name: 'AUG | Наемник', rarity: 'common', price: 18, w: 800, img: iUrl + '-9a81dlWLwJ2UUGcVs_nsVtzdOEdtWwKGZZLQHTxDZ7I56KU0Zwwo4NUX4oFJZEHLbXH5ApeO4YmlhxYQknCRvCo04DEVlxkKgoWeabqOANf-r-fFAzE2ci0m1-Gnvn8Oq_UmnhD-Ml0juz--YXygED6-UY6ZGv0cYOQd1M4NVnV_Va4xe25hp-0u53LnSdh7D5iuyisxxw-LgA1' },
+
+                // 5 средних
+                { name: 'AK-47 | Пустынный повстанец', rarity: 'rare', price: 150, w: 40, img: iUrl + '-9a81dlWLwJ2UUGcVs_nsVtzdOEdtWwKGZZLQHTxDZ7I56KU0Zwwo4NUX4oFJZEHLbXH5ApeO4YmlhxYQknCRvCo04DEVlxkKgpot7HxfDhjxszJemkV09-5lpKKqPrxN7LEmyVQ7MEpiLuX8I-k3QXsqRVlZ2GlIYPBdwc4YlvR8gTqxebpg8W_vM-fmHdgvCUn4CndmQv3308mIukPGA' },
+                { name: 'M4A4 | Коалиция', rarity: 'rare', price: 120, w: 50, img: iUrl + '-9a81dlWLwJ2UUGcVs_nsVtzdOEdtWwKGZZLQHTxDZ7I56KU0Zwwo4NUX4oFJZEHLbXH5ApeO4YmlhxYQknCRvCo04DEVlxkKgpou-6kejhjxszfjDFW-M6_hIW0mOX1N-Luhm5V18N0hf-WpInwi0GxqkMqMDivcY6XcAM3M12CqVm-xLjrhJG9ucicyHFkvCMq-z-DyK9O_-kQ' },
+                { name: 'AWP | Элитное снаряжение', rarity: 'rare', price: 180, w: 30, img: iUrl + '-9a81dlWLwJ2UUGcVs_nsVtzdOEdtWwKGZZLQHTxDZ7I56KU0Zwwo4NUX4oFJZEHLbXH5ApeO4YmlhxYQknCRvCo04DEVlxkKgpot621FAR17PLfYQJD_9W7m5a0mvLwOq7c2D4G65xz0-2ZpNmti1fl_xVva1qwclc8cApvMInmDQa2yO_m0ZTtutjMmHVg7HYr-z-DyI4jCxsS' },
+                { name: 'Desert Eagle | Директива', rarity: 'rare', price: 90, w: 50, img: iUrl + '-9a81dlWLwJ2UUGcVs_nsVtzdOEdtWwKGZZLQHTxDZ7I56KU0Zwwo4NUX4oFJZEHLbXH5ApeO4YmlhxYQknCRvCo04DEVlxkKgoWeabqOANf-r-fFAzE2ci0m1-Gnvn8Oq_UmnhD-Ml0juz--YXygED6-UY6ZGv0cYOQd1M4NVnV_Va4xe25hp-0u53LnSdh7D5iuyisxxw-LgA1' },
+                { name: 'USP-S | Извилина', rarity: 'rare', price: 100, w: 40, img: iUrl + '-9a81dlWLwJ2UUGcVs_nsVtzdOEdtWwKGZZLQHTxDZ7I56KU0Zwwo4NUX4oFJZEHLbXH5ApeO4YmlhxYQknCRvCo04DEVlxkKgpoo6m1FBRp3_bGcTpN0924q4iOluHtfevVxzhTscYpjOqV8NmkigC280o6MWyicNXHdAQ2ZV3T8gToyOzrgp7ovpjMySNkpGB8snP8q3sA' },
+
+                // 2 топа
+                { name: 'M4A1-S | Рыцарь', rarity: 'gold', price: 2000, w: 2, img: iUrl + '-9a81dlWLwJ2UUGcVs_nsVtzdOEdtWwKGZZLQHTxDZ7I56KU0Zwwo4NUX4oFJZEHLbXH5ApeO4YmlhxYQknCRvCo04DEVlxkKgpou-6kcjhozezbDzhN09G_k4if2a_8ML_Wk1Rcw1RlvjnHptqki1Gy_kM9azqlcYSWJwE2Z1zT8wTswLy8hJHu7ZTNzSBk73Nw5nfVmhS1hxwfbeK5yQ' },
+                { name: 'AWP | Пустынная гидра', rarity: 'gold', price: 4000, w: 1, img: iUrl + '-9a81dlWLwJ2UUGcVs_nsVtzdOEdtWwKGZZLQHTxDZ7I56KU0Zwwo4NUX4oFJZEHLbXH5ApeO4YmlhxYQknCRvCo04DEVlxkKgpot621FAR17PLfYQJD_9W7m5a0mvLwOq7c2D4G65xz0-2ZpNmti1fl_xVva1qwclc8cApvMInmDQa2yO_m0ZTtutjMmHVg7HYr-z-DyI4jCxsS' }
+            ],
+
+            // 13. STICKER CAPSULE (Наклейки. Окуп 30%. Цена: 40)
+            sticker_capsule: [
+                // 20 дешевых наклеек
+                { name: 'Наклейка | Улыбка', rarity: 'common', price: 2, w: 1000, img: iUrl + '-9a81dlWLwJ2UUGcVs_nsVtzdOEdtWwKGZZLQHTxDZ7I56KU0Zwwo4NUX4oFJZEHLbXH5ApeO4YmlhxYQknCRvCo04DEVlxkKgoWeabqOANf-r-fFAzE2ci0m1-Gnvn8Oq_UmnhD-Ml0juz--YXygED6-UY6ZGv0cYOQd1M4NVnV_Va4xe25hp-0u53LnSdh7D5iuyisxxw-LgA1' },
+                { name: 'Наклейка | Бомба', rarity: 'common', price: 3, w: 1000, img: iUrl + '-9a81dlWLwJ2UUGcVs_nsVtzdOEdtWwKGZZLQHTxDZ7I56KU0Zwwo4NUX4oFJZEHLbXH5ApeO4YmlhxYQknCRvCo04DEVlxkKgoWeabqOANf-r-fFAzE2ci0mVW0m_7zO6_cmnhD-Ml0juz--YXygED6rUo4ZWvydoXAdFQ3aF7X-QC7krjug8PpuM-bmiNluCEr4SuMzBywiAYMMLK8kEtnwQ' },
+                { name: 'Наклейка | GG', rarity: 'common', price: 2, w: 1000, img: iUrl + '-9a81dlWLwJ2UUGcVs_nsVtzdOEdtWwKGZZLQHTxDZ7I56KU0Zwwo4NUX4oFJZEHLbXH5ApeO4YmlhxYQknCRvCo04DEVlxkKgoWeabqOANf-r-fFAzE2ci0m1-Gnvn8Oq_UmnhD-Ml0juz--YXygED6-UY6ZGv0cYOQd1M4NVnV_Va4xe25hp-0u53LnSdh7D5iuyisxxw-LgA1' },
+                { name: 'Наклейка | Спецназ', rarity: 'common', price: 4, w: 1000, img: iUrl + '-9a81dlWLwJ2UUGcVs_nsVtzdOEdtWwKGZZLQHTxDZ7I56KU0Zwwo4NUX4oFJZEHLbXH5ApeO4YmlhxYQknCRvCo04DEVlxkKgoWeabqOANf-r-fFAzE2ci0mVW0m_7zO6_cmnhD-Ml0juz--YXygED6rUo4ZWvydoXAdFQ3aF7X-QC7krjug8PpuM-bmiNluCEr4SuMzBywiAYMMLK8kEtnwQ' },
+                { name: 'Наклейка | Террорист', rarity: 'common', price: 4, w: 1000, img: iUrl + '-9a81dlWLwJ2UUGcVs_nsVtzdOEdtWwKGZZLQHTxDZ7I56KU0Zwwo4NUX4oFJZEHLbXH5ApeO4YmlhxYQknCRvCo04DEVlxkKgoWeabqOANf-r-fFAzE2ci0m1-Gnvn8Oq_UmnhD-Ml0juz--YXygED6-UY6ZGv0cYOQd1M4NVnV_Va4xe25hp-0u53LnSdh7D5iuyisxxw-LgA1' },
+                { name: 'Наклейка | Ниндзя', rarity: 'common', price: 3, w: 1000, img: iUrl + '-9a81dlWLwJ2UUGcVs_nsVtzdOEdtWwKGZZLQHTxDZ7I56KU0Zwwo4NUX4oFJZEHLbXH5ApeO4YmlhxYQknCRvCo04DEVlxkKgoWeabqOANf-r-fFAzE2ci0mVW0m_7zO6_cmnhD-Ml0juz--YXygED6rUo4ZWvydoXAdFQ3aF7X-QC7krjug8PpuM-bmiNluCEr4SuMzBywiAYMMLK8kEtnwQ' },
+                { name: 'Наклейка | Курица', rarity: 'common', price: 5, w: 1000, img: iUrl + '-9a81dlWLwJ2UUGcVs_nsVtzdOEdtWwKGZZLQHTxDZ7I56KU0Zwwo4NUX4oFJZEHLbXH5ApeO4YmlhxYQknCRvCo04DEVlxkKgoWeabqOANf-r-fFAzE2ci0m1-Gnvn8Oq_UmnhD-Ml0juz--YXygED6-UY6ZGv0cYOQd1M4NVnV_Va4xe25hp-0u53LnSdh7D5iuyisxxw-LgA1' },
+                { name: 'Наклейка | Хедшот', rarity: 'common', price: 6, w: 1000, img: iUrl + '-9a81dlWLwJ2UUGcVs_nsVtzdOEdtWwKGZZLQHTxDZ7I56KU0Zwwo4NUX4oFJZEHLbXH5ApeO4YmlhxYQknCRvCo04DEVlxkKgoWeabqOANf-r-fFAzE2ci0mVW0m_7zO6_cmnhD-Ml0juz--YXygED6rUo4ZWvydoXAdFQ3aF7X-QC7krjug8PpuM-bmiNluCEr4SuMzBywiAYMMLK8kEtnwQ' },
+                { name: 'Наклейка | Единорог', rarity: 'common', price: 8, w: 1000, img: iUrl + '-9a81dlWLwJ2UUGcVs_nsVtzdOEdtWwKGZZLQHTxDZ7I56KU0Zwwo4NUX4oFJZEHLbXH5ApeO4YmlhxYQknCRvCo04DEVlxkKgoWeabqOANf-r-fFAzE2ci0m1-Gnvn8Oq_UmnhD-Ml0juz--YXygED6-UY6ZGv0cYOQd1M4NVnV_Va4xe25hp-0u53LnSdh7D5iuyisxxw-LgA1' },
+                { name: 'Наклейка | Золотая звезда', rarity: 'common', price: 10, w: 1000, img: iUrl + '-9a81dlWLwJ2UUGcVs_nsVtzdOEdtWwKGZZLQHTxDZ7I56KU0Zwwo4NUX4oFJZEHLbXH5ApeO4YmlhxYQknCRvCo04DEVlxkKgoWeabqOANf-r-fFAzE2ci0mVW0m_7zO6_cmnhD-Ml0juz--YXygED6rUo4ZWvydoXAdFQ3aF7X-QC7krjug8PpuM-bmiNluCEr4SuMzBywiAYMMLK8kEtnwQ' },
+                { name: 'Наклейка | Вой', rarity: 'common', price: 15, w: 1000, img: iUrl + '-9a81dlWLwJ2UUGcVs_nsVtzdOEdtWwKGZZLQHTxDZ7I56KU0Zwwo4NUX4oFJZEHLbXH5ApeO4YmlhxYQknCRvCo04DEVlxkKgoWeabqOANf-r-fFAzE2ci0m1-Gnvn8Oq_UmnhD-Ml0juz--YXygED6-UY6ZGv0cYOQd1M4NVnV_Va4xe25hp-0u53LnSdh7D5iuyisxxw-LgA1' },
+                { name: 'Наклейка | Корона', rarity: 'common', price: 12, w: 1000, img: iUrl + '-9a81dlWLwJ2UUGcVs_nsVtzdOEdtWwKGZZLQHTxDZ7I56KU0Zwwo4NUX4oFJZEHLbXH5ApeO4YmlhxYQknCRvCo04DEVlxkKgoWeabqOANf-r-fFAzE2ci0mVW0m_7zO6_cmnhD-Ml0juz--YXygED6rUo4ZWvydoXAdFQ3aF7X-QC7krjug8PpuM-bmiNluCEr4SuMzBywiAYMMLK8kEtnwQ' },
+                { name: 'Наклейка | Азимов', rarity: 'common', price: 14, w: 1000, img: iUrl + '-9a81dlWLwJ2UUGcVs_nsVtzdOEdtWwKGZZLQHTxDZ7I56KU0Zwwo4NUX4oFJZEHLbXH5ApeO4YmlhxYQknCRvCo04DEVlxkKgoWeabqOANf-r-fFAzE2ci0m1-Gnvn8Oq_UmnhD-Ml0juz--YXygED6-UY6ZGv0cYOQd1M4NVnV_Va4xe25hp-0u53LnSdh7D5iuyisxxw-LgA1' },
+                { name: 'Наклейка | Дракон', rarity: 'common', price: 18, w: 1000, img: iUrl + '-9a81dlWLwJ2UUGcVs_nsVtzdOEdtWwKGZZLQHTxDZ7I56KU0Zwwo4NUX4oFJZEHLbXH5ApeO4YmlhxYQknCRvCo04DEVlxkKgoWeabqOANf-r-fFAzE2ci0mVW0m_7zO6_cmnhD-Ml0juz--YXygED6rUo4ZWvydoXAdFQ3aF7X-QC7krjug8PpuM-bmiNluCEr4SuMzBywiAYMMLK8kEtnwQ' },
+                { name: 'Наклейка | Феникс', rarity: 'common', price: 16, w: 1000, img: iUrl + '-9a81dlWLwJ2UUGcVs_nsVtzdOEdtWwKGZZLQHTxDZ7I56KU0Zwwo4NUX4oFJZEHLbXH5ApeO4YmlhxYQknCRvCo04DEVlxkKgoWeabqOANf-r-fFAzE2ci0m1-Gnvn8Oq_UmnhD-Ml0juz--YXygED6-UY6ZGv0cYOQd1M4NVnV_Va4xe25hp-0u53LnSdh7D5iuyisxxw-LgA1' },
+                { name: 'Наклейка | Волны', rarity: 'common', price: 20, w: 1000, img: iUrl + '-9a81dlWLwJ2UUGcVs_nsVtzdOEdtWwKGZZLQHTxDZ7I56KU0Zwwo4NUX4oFJZEHLbXH5ApeO4YmlhxYQknCRvCo04DEVlxkKgoWeabqOANf-r-fFAzE2ci0mVW0m_7zO6_cmnhD-Ml0juz--YXygED6rUo4ZWvydoXAdFQ3aF7X-QC7krjug8PpuM-bmiNluCEr4SuMzBywiAYMMLK8kEtnwQ' },
+                { name: 'Наклейка | Глобал', rarity: 'common', price: 22, w: 1000, img: iUrl + '-9a81dlWLwJ2UUGcVs_nsVtzdOEdtWwKGZZLQHTxDZ7I56KU0Zwwo4NUX4oFJZEHLbXH5ApeO4YmlhxYQknCRvCo04DEVlxkKgoWeabqOANf-r-fFAzE2ci0m1-Gnvn8Oq_UmnhD-Ml0juz--YXygED6-UY6ZGv0cYOQd1M4NVnV_Va4xe25hp-0u53LnSdh7D5iuyisxxw-LgA1' },
+                { name: 'Наклейка | Сильвер', rarity: 'common', price: 25, w: 1000, img: iUrl + '-9a81dlWLwJ2UUGcVs_nsVtzdOEdtWwKGZZLQHTxDZ7I56KU0Zwwo4NUX4oFJZEHLbXH5ApeO4YmlhxYQknCRvCo04DEVlxkKgoWeabqOANf-r-fFAzE2ci0mVW0m_7zO6_cmnhD-Ml0juz--YXygED6rUo4ZWvydoXAdFQ3aF7X-QC7krjug8PpuM-bmiNluCEr4SuMzBywiAYMMLK8kEtnwQ' },
+                { name: 'Наклейка | Авапер', rarity: 'common', price: 28, w: 1000, img: iUrl + '-9a81dlWLwJ2UUGcVs_nsVtzdOEdtWwKGZZLQHTxDZ7I56KU0Zwwo4NUX4oFJZEHLbXH5ApeO4YmlhxYQknCRvCo04DEVlxkKgoWeabqOANf-r-fFAzE2ci0m1-Gnvn8Oq_UmnhD-Ml0juz--YXygED6-UY6ZGv0cYOQd1M4NVnV_Va4xe25hp-0u53LnSdh7D5iuyisxxw-LgA1' },
+                { name: 'Наклейка | Флешка', rarity: 'common', price: 30, w: 1000, img: iUrl + '-9a81dlWLwJ2UUGcVs_nsVtzdOEdtWwKGZZLQHTxDZ7I56KU0Zwwo4NUX4oFJZEHLbXH5ApeO4YmlhxYQknCRvCo04DEVlxkKgoWeabqOANf-r-fFAzE2ci0mVW0m_7zO6_cmnhD-Ml0juz--YXygED6rUo4ZWvydoXAdFQ3aF7X-QC7krjug8PpuM-bmiNluCEr4SuMzBywiAYMMLK8kEtnwQ' },
+
+                // 5 средних
+                { name: 'Наклейка | NaVi (Голографическая)', rarity: 'rare', price: 80, w: 50, img: iUrl + '-9a81dlWLwJ2UUGcVs_nsVtzdOEdtWwKGZZLQHTxDZ7I56KU0Zwwo4NUX4oFJZEHLbXH5ApeO4YmlhxYQknCRvCo04DEVlxkKgoWeabqOANf-r-fFAzE2ci0m1-Gnvn8Oq_UmnhD-Ml0juz--YXygED6-UY6ZGv0cYOQd1M4NVnV_Va4xe25hp-0u53LnSdh7D5iuyisxxw-LgA1' },
+                { name: 'Наклейка | Cloud9 (Голографическая)', rarity: 'rare', price: 90, w: 40, img: iUrl + '-9a81dlWLwJ2UUGcVs_nsVtzdOEdtWwKGZZLQHTxDZ7I56KU0Zwwo4NUX4oFJZEHLbXH5ApeO4YmlhxYQknCRvCo04DEVlxkKgoWeabqOANf-r-fFAzE2ci0mVW0m_7zO6_cmnhD-Ml0juz--YXygED6rUo4ZWvydoXAdFQ3aF7X-QC7krjug8PpuM-bmiNluCEr4SuMzBywiAYMMLK8kEtnwQ' },
+                { name: 'Наклейка | FaZe (Голографическая)', rarity: 'rare', price: 100, w: 35, img: iUrl + '-9a81dlWLwJ2UUGcVs_nsVtzdOEdtWwKGZZLQHTxDZ7I56KU0Zwwo4NUX4oFJZEHLbXH5ApeO4YmlhxYQknCRvCo04DEVlxkKgoWeabqOANf-r-fFAzE2ci0m1-Gnvn8Oq_UmnhD-Ml0juz--YXygED6-UY6ZGv0cYOQd1M4NVnV_Va4xe25hp-0u53LnSdh7D5iuyisxxw-LgA1' },
+                { name: 'Наклейка | Astralis (Голографическая)', rarity: 'rare', price: 85, w: 45, img: iUrl + '-9a81dlWLwJ2UUGcVs_nsVtzdOEdtWwKGZZLQHTxDZ7I56KU0Zwwo4NUX4oFJZEHLbXH5ApeO4YmlhxYQknCRvCo04DEVlxkKgoWeabqOANf-r-fFAzE2ci0mVW0m_7zO6_cmnhD-Ml0juz--YXygED6rUo4ZWvydoXAdFQ3aF7X-QC7krjug8PpuM-bmiNluCEr4SuMzBywiAYMMLK8kEtnwQ' },
+                { name: 'Наклейка | Vitality (Голографическая)', rarity: 'rare', price: 95, w: 40, img: iUrl + '-9a81dlWLwJ2UUGcVs_nsVtzdOEdtWwKGZZLQHTxDZ7I56KU0Zwwo4NUX4oFJZEHLbXH5ApeO4YmlhxYQknCRvCo04DEVlxkKgoWeabqOANf-r-fFAzE2ci0m1-Gnvn8Oq_UmnhD-Ml0juz--YXygED6-UY6ZGv0cYOQd1M4NVnV_Va4xe25hp-0u53LnSdh7D5iuyisxxw-LgA1' },
+
+                // 2 топа
+                { name: 'Наклейка | Titan (Голографическая)', rarity: 'gold', price: 1500, w: 2, img: iUrl + '-9a81dlWLwJ2UUGcVs_nsVtzdOEdtWwKGZZLQHTxDZ7I56KU0Zwwo4NUX4oFJZEHLbXH5ApeO4YmlhxYQknCRvCo04DEVlxkKgoWeabqOANf-r-fFAzE2ci0mVW0m_7zO6_cmnhD-Ml0juz--YXygED6rUo4ZWvydoXAdFQ3aF7X-QC7krjug8PpuM-bmiNluCEr4SuMzBywiAYMMLK8kEtnwQ' },
+                { name: 'Наклейка | iBUYPOWER (Голографическая)', rarity: 'gold', price: 2000, w: 1, img: iUrl + '-9a81dlWLwJ2UUGcVs_nsVtzdOEdtWwKGZZLQHTxDZ7I56KU0Zwwo4NUX4oFJZEHLbXH5ApeO4YmlhxYQknCRvCo04DEVlxkKgoWeabqOANf-r-fFAzE2ci0m1-Gnvn8Oq_UmnhD-Ml0juz--YXygED6-UY6ZGv0cYOQd1M4NVnV_Va4xe25hp-0u53LnSdh7D5iuyisxxw-LgA1' }
+            ],
+
+            // 14. PRO PLAYER (Окуп 15%. Цена: 800)
+            pro_player: [
+                // 20 обычных скинов
+                { name: 'AK-47 | Орбита', rarity: 'common', price: 50, w: 800, img: iUrl + '-9a81dlWLwJ2UUGcVs_nsVtzdOEdtWwKGZZLQHTxDZ7I56KU0Zwwo4NUX4oFJZEHLbXH5ApeO4YmlhxYQknCRvCo04DEVlxkKgpot7HxfDhjxszJemkV09-5lpKKqPrxN7LEmyVQ7MEpiLuX8I-k3QXsqRVlZ2GlIYPBdwc4YlvR8gTqxebpg8W_vM-fmHdgvCUn4CndmQv3308mIukPGA' },
+                { name: 'M4A4 | Злобный дайме', rarity: 'common', price: 60, w: 800, img: iUrl + '-9a81dlWLwJ2UUGcVs_nsVtzdOEdtWwKGZZLQHTxDZ7I56KU0Zwwo4NUX4oFJZEHLbXH5ApeO4YmlhxYQknCRvCo04DEVlxkKgpou-6kejhjxszfjDFW-M6_hIW0mOX1N-Luhm5V18N0hf-WpInwi0GxqkMqMDivcY6XcAM3M12CqVm-xLjrhJG9ucicyHFkvCMq-z-DyK9O_-kQ' },
+                { name: 'AWP | Фобос', rarity: 'common', price: 70, w: 800, img: iUrl + '-9a81dlWLwJ2UUGcVs_nsVtzdOEdtWwKGZZLQHTxDZ7I56KU0Zwwo4NUX4oFJZEHLbXH5ApeO4YmlhxYQknCRvCo04DEVlxkKgpot621FAR17PLfYQJD_9W7m5a0mvLwOq7c2D4G65xz0-2ZpNmti1fl_xVva1qwclc8cApvMInmDQa2yO_m0ZTtutjMmHVg7HYr-z-DyI4jCxsS' },
+                { name: 'Desert Eagle | Бронзовая декорация', rarity: 'common', price: 40, w: 800, img: iUrl + '-9a81dlWLwJ2UUGcVs_nsVtzdOEdtWwKGZZLQHTxDZ7I56KU0Zwwo4NUX4oFJZEHLbXH5ApeO4YmlhxYQknCRvCo04DEVlxkKgoWeabqOANf-r-fFAzE2ci0m1-Gnvn8Oq_UmnhD-Ml0juz--YXygED6-UY6ZGv0cYOQd1M4NVnV_Va4xe25hp-0u53LnSdh7D5iuyisxxw-LgA1' },
+                { name: 'USP-S | Кровавый тигр', rarity: 'common', price: 30, w: 800, img: iUrl + '-9a81dlWLwJ2UUGcVs_nsVtzdOEdtWwKGZZLQHTxDZ7I56KU0Zwwo4NUX4oFJZEHLbXH5ApeO4YmlhxYQknCRvCo04DEVlxkKgpoo6m1FBRp3_bGcTpN0924q4iOluHtfevVxzhTscYpjOqV8NmkigC280o6MWyicNXHdAQ2ZV3T8gToyOzrgp7ovpjMySNkpGB8snP8q3sA' },
+                { name: 'Glock-18 | Жертвенность', rarity: 'common', price: 25, w: 800, img: iUrl + '-9a81dlWLwJ2UUGcVs_nsVtzdOEdtWwKGZZLQHTxDZ7I56KU0Zwwo4NUX4oFJZEHLbXH5ApeO4YmlhxYQknCRvCo04DEVlxkKgposbaqKAxf0v73dDBH_t26q4S0m_7zO6_ck29Y_cg_2-yQpYmi0FHg-kQ9Yjv0JoGddlU2MA3Z8lLqyOnpgZDt6Z3JzyAwuSIj5HuJlwv330_5p-Rviw' },
+                { name: 'M4A1-S | Взгляд в прошлое', rarity: 'common', price: 65, w: 800, img: iUrl + '-9a81dlWLwJ2UUGcVs_nsVtzdOEdtWwKGZZLQHTxDZ7I56KU0Zwwo4NUX4oFJZEHLbXH5ApeO4YmlhxYQknCRvCo04DEVlxkKgpou-6kcjhozezbDzhN09G_k4if2a_8ML_Wk1Rcw1RlvjnHptqki1Gy_kM9azqlcYSWJwE2Z1zT8wTswLy8hJHu7ZTNzSBk73Nw5nfVmhS1hxwfbeK5yQ' },
+                { name: 'P250 | Валентность', rarity: 'common', price: 20, w: 800, img: iUrl + '-9a81dlWLwJ2UUGcVs_nsVtzdOEdtWwKGZZLQHTxDZ7I56KU0Zwwo4NUX4oFJZEHLbXH5ApeO4YmlhxYQknCRvCo04DEVlxkKgpopujwezhhwAMzcTFR09C_k4mClvnmJb_VlT1RsMhwj-zDo9j0hAawq0E9Z2r1JdTGdwU7ZwzRqVC5lrm60JO5vc7Pmns3pGB8stMvYt7U' },
+                { name: 'Tec-9 | Лавина', rarity: 'common', price: 35, w: 800, img: iUrl + '-9a81dlWLwJ2UUGcVs_nsVtzdOEdtWwKGZZLQHTxDZ7I56KU0Zwwo4NUX4oFJZEHLbXH5ApeO4YmlhxYQknCRvCo04DEVlxkKgoWeabqOANf-r-fFAzE2ci0mVW0m_7zO6_cmnhD-Ml0juz--YXygED6rUo4ZWvydoXAdFQ3aF7X-QC7krjug8PpuM-bmiNluCEr4SuMzBywiAYMMLK8kEtnwQ' },
+                { name: 'Five-SeveN | Обезьянье дело', rarity: 'common', price: 45, w: 800, img: iUrl + '-9a81dlWLwJ2UUGcVs_nsVtzdOEdtWwKGZZLQHTxDZ7I56KU0Zwwo4NUX4oFJZEHLbXH5ApeO4YmlhxYQknCRvCo04DEVlxkKgoWeabqOANf-r-fFAzE2ci0m1-Gnvn8Oq_UmnhD-Ml0juz--YXygED6-UY6ZGv0cYOQd1M4NVnV_Va4xe25hp-0u53LnSdh7D5iuyisxxw-LgA1' },
+                { name: 'MAC-10 | Неоновый гонщик', rarity: 'common', price: 55, w: 800, img: iUrl + '-9a81dlWLwJ2UUGcVs_nsVtzdOEdtWwKGZZLQHTxDZ7I56KU0Zwwo4NUX4oFJZEHLbXH5ApeO4YmlhxYQknCRvCo04DEVlxkKgoWeabqOANf-r-fFAzE2ci0mVW0m_7zO6_cmnhD-Ml0juz--YXygED6rUo4ZWvydoXAdFQ3aF7X-QC7krjug8PpuM-bmiNluCEr4SuMzBywiAYMMLK8kEtnwQ' },
+                { name: 'MP7 | Кровавый спорт', rarity: 'common', price: 50, w: 800, img: iUrl + '-9a81dlWLwJ2UUGcVs_nsVtzdOEdtWwKGZZLQHTxDZ7I56KU0Zwwo4NUX4oFJZEHLbXH5ApeO4YmlhxYQknCRvCo04DEVlxkKgoWeabqOANf-r-fFAzE2ci0m1-Gnvn8Oq_UmnhD-Ml0juz--YXygED6-UY6ZGv0cYOQd1M4NVnV_Va4xe25hp-0u53LnSdh7D5iuyisxxw-LgA1' },
+                { name: 'UMP-45 | Облучение', rarity: 'common', price: 30, w: 800, img: iUrl + '-9a81dlWLwJ2UUGcVs_nsVtzdOEdtWwKGZZLQHTxDZ7I56KU0Zwwo4NUX4oFJZEHLbXH5ApeO4YmlhxYQknCRvCo04DEVlxkKgoWeabqOANf-r-fFAzE2ci0mVW0m_7zO6_cmnhD-Ml0juz--YXygED6rUo4ZWvydoXAdFQ3aF7X-QC7krjug8PpuM-bmiNluCEr4SuMzBywiAYMMLK8kEtnwQ' },
+                { name: 'P90 | Азимов', rarity: 'common', price: 60, w: 800, img: iUrl + '-9a81dlWLwJ2UUGcVs_nsVtzdOEdtWwKGZZLQHTxDZ7I56KU0Zwwo4NUX4oFJZEHLbXH5ApeO4YmlhxYQknCRvCo04DEVlxkKgoWeabqOANf-r-fFAzE2ci0m1-Gnvn8Oq_UmnhD-Ml0juz--YXygED6-UY6ZGv0cYOQd1M4NVnV_Va4xe25hp-0u53LnSdh7D5iuyisxxw-LgA1' },
+                { name: 'PP-Bizon | Анубис', rarity: 'common', price: 25, w: 800, img: iUrl + '-9a81dlWLwJ2UUGcVs_nsVtzdOEdtWwKGZZLQHTxDZ7I56KU0Zwwo4NUX4oFJZEHLbXH5ApeO4YmlhxYQknCRvCo04DEVlxkKgoWeabqOANf-r-fFAzE2ci0mVW0m_7zO6_cmnhD-Ml0juz--YXygED6rUo4ZWvydoXAdFQ3aF7X-QC7krjug8PpuM-bmiNluCEr4SuMzBywiAYMMLK8kEtnwQ' },
+                { name: 'Galil AR | Цербер', rarity: 'common', price: 40, w: 800, img: iUrl + '-9a81dlWLwJ2UUGcVs_nsVtzdOEdtWwKGZZLQHTxDZ7I56KU0Zwwo4NUX4oFJZEHLbXH5ApeO4YmlhxYQknCRvCo04DEVlxkKgoWeabqOANf-r-fFAzE2ci0m1-Gnvn8Oq_UmnhD-Ml0juz--YXygED6-UY6ZGv0cYOQd1M4NVnV_Va4xe25hp-0u53LnSdh7D5iuyisxxw-LgA1' },
+                { name: 'FAMAS | Механо-пушка', rarity: 'common', price: 45, w: 800, img: iUrl + '-9a81dlWLwJ2UUGcVs_nsVtzdOEdtWwKGZZLQHTxDZ7I56KU0Zwwo4NUX4oFJZEHLbXH5ApeO4YmlhxYQknCRvCo04DEVlxkKgoWeabqOANf-r-fFAzE2ci0mVW0m_7zO6_cmnhD-Ml0juz--YXygED6rUo4ZWvydoXAdFQ3aF7X-QC7krjug8PpuM-bmiNluCEr4SuMzBywiAYMMLK8kEtnwQ' },
+                { name: 'SSG 08 | Пучина', rarity: 'common', price: 20, w: 800, img: iUrl + '-9a81dlWLwJ2UUGcVs_nsVtzdOEdtWwKGZZLQHTxDZ7I56KU0Zwwo4NUX4oFJZEHLbXH5ApeO4YmlhxYQknCRvCo04DEVlxkKgoWeabqOANf-r-fFAzE2ci0m1-Gnvn8Oq_UmnhD-Ml0juz--YXygED6-UY6ZGv0cYOQd1M4NVnV_Va4xe25hp-0u53LnSdh7D5iuyisxxw-LgA1' },
+                { name: 'AUG | Хамелеон', rarity: 'common', price: 55, w: 800, img: iUrl + '-9a81dlWLwJ2UUGcVs_nsVtzdOEdtWwKGZZLQHTxDZ7I56KU0Zwwo4NUX4oFJZEHLbXH5ApeO4YmlhxYQknCRvCo04DEVlxkKgoWeabqOANf-r-fFAzE2ci0mVW0m_7zO6_cmnhD-Ml0juz--YXygED6rUo4ZWvydoXAdFQ3aF7X-QC7krjug8PpuM-bmiNluCEr4SuMzBywiAYMMLK8kEtnwQ' },
+                { name: 'SG 553 | Сайрекс', rarity: 'common', price: 35, w: 800, img: iUrl + '-9a81dlWLwJ2UUGcVs_nsVtzdOEdtWwKGZZLQHTxDZ7I56KU0Zwwo4NUX4oFJZEHLbXH5ApeO4YmlhxYQknCRvCo04DEVlxkKgoWeabqOANf-r-fFAzE2ci0m1-Gnvn8Oq_UmnhD-Ml0juz--YXygED6-UY6ZGv0cYOQd1M4NVnV_Va4xe25hp-0u53LnSdh7D5iuyisxxw-LgA1' },
+
+                // 5 средних
+                { name: 'AK-47 | Вулкан', rarity: 'rare', price: 250, w: 50, img: iUrl + '-9a81dlWLwJ2UUGcVs_nsVtzdOEdtWwKGZZLQHTxDZ7I56KU0Zwwo4NUX4oFJZEHLbXH5ApeO4YmlhxYQknCRvCo04DEVlxkKgpot7HxfDhjxszJemkV09-5lpKKqPrxN7LEmyVQ7MEpiLuX8I-k3QXsqRVlZ2GlIYPBdwc4YlvR8gTqxebpg8W_vM-fmHdgvCUn4CndmQv3308mIukPGA' },
+                { name: 'M4A4 | Азимов', rarity: 'rare', price: 300, w: 40, img: iUrl + '-9a81dlWLwJ2UUGcVs_nsVtzdOEdtWwKGZZLQHTxDZ7I56KU0Zwwo4NUX4oFJZEHLbXH5ApeO4YmlhxYQknCRvCo04DEVlxkKgpou-6kejhjxszfjDFW-M6_hIW0mOX1N-Luhm5V18N0hf-WpInwi0GxqkMqMDivcY6XcAM3M12CqVm-xLjrhJG9ucicyHFkvCMq-z-DyK9O_-kQ' },
+                { name: 'AWP | Азимов', rarity: 'rare', price: 350, w: 30, img: iUrl + '-9a81dlWLwJ2UUGcVs_nsVtzdOEdtWwKGZZLQHTxDZ7I56KU0Zwwo4NUX4oFJZEHLbXH5ApeO4YmlhxYQknCRvCo04DEVlxkKgpot621FAR17PLfYQJD_9W7m5a0mvLwOq7c2D4G65xz0-2ZpNmti1fl_xVva1qwclc8cApvMInmDQa2yO_m0ZTtutjMmHVg7HYr-z-DyI4jCxsS' },
+                { name: 'Desert Eagle | Пламя', rarity: 'rare', price: 400, w: 25, img: iUrl + '-9a81dlWLwJ2UUGcVs_nsVtzdOEdtWwKGZZLQHTxDZ7I56KU0Zwwo4NUX4oFJZEHLbXH5ApeO4YmlhxYQknCRvCo04DEVlxkKgoWeabqOANf-r-fFAzE2ci0mVW0m_7zO6_cmnhD-Ml0juz--YXygED6rUo4ZWvydoXAdFQ3aF7X-QC7krjug8PpuM-bmiNluCEr4SuMzBywiAYMMLK8kEtnwQ' },
+                { name: 'USP-S | Подтвержденное убийство', rarity: 'rare', price: 280, w: 45, img: iUrl + '-9a81dlWLwJ2UUGcVs_nsVtzdOEdtWwKGZZLQHTxDZ7I56KU0Zwwo4NUX4oFJZEHLbXH5ApeO4YmlhxYQknCRvCo04DEVlxkKgpoo6m1FBRp3_bGcTpN0924q4iOluHtfevVxzhTscYpjOqV8NmkigC280o6MWyicNXHdAQ2ZV3T8gToyOzrgp7ovpjMySNkpGB8snP8q3sA' },
+
+                // 2 топа
+                { name: 'AWP | История о драконе', rarity: 'gold', price: 8000, w: 2, img: iUrl + '-9a81dlWLwJ2UUGcVs_nsVtzdOEdtWwKGZZLQHTxDZ7I56KU0Zwwo4NUX4oFJZEHLbXH5ApeO4YmlhxYQknCRvCo04DEVlxkKgpot621FAR17PLfYQJD_9W7m5a0mvLwOq7c2D4G65xz0-2ZpNmti1fl_xVva1qwclc8cApvMInmDQa2yO_m0ZTtutjMmHVg7HYr-z-DyI4jCxsS' },
+                { name: 'Нож-бабочка | Волны', rarity: 'gold', price: 12000, w: 1, img: iUrl + '-9a81dlWLwJ2UUGcVs_nsVtzdOEdtWwKGZZLQHTxDZ7I56KU0Zwwo4NUX4oFJZEHLbXH5ApeO4YmlhxYQknCRvCo04DEVlxkKgpovbSsLQJf2OTEcgFO_c-1mY-DkvbiM7_Sl29U18l4jeHVu43zjAex_UQ9az_xd4SVI1c3aFrQrFS8le2-gMK97c_InHpqsykgtH6OlhC-1B0eb7NshqWACQLJDgY1U1w' }
+            ],
+
+            // 15. NIGHTMARE (Кошмар. Окуп 11%. Цена: 1200)
+            nightmare: [
+                // 20 дешевых пушек
+                { name: 'AK-47 | Призрачный вредитель', rarity: 'common', price: 80, w: 800, img: iUrl + '-9a81dlWLwJ2UUGcVs_nsVtzdOEdtWwKGZZLQHTxDZ7I56KU0Zwwo4NUX4oFJZEHLbXH5ApeO4YmlhxYQknCRvCo04DEVlxkKgpot7HxfDhjxszJemkV09-5lpKKqPrxN7LEmyVQ7MEpiLuX8I-k3QXsqRVlZ2GlIYPBdwc4YlvR8gTqxebpg8W_vM-fmHdgvCUn4CndmQv3308mIukPGA' },
+                { name: 'M4A4 | Безлюдный космос', rarity: 'common', price: 90, w: 800, img: iUrl + '-9a81dlWLwJ2UUGcVs_nsVtzdOEdtWwKGZZLQHTxDZ7I56KU0Zwwo4NUX4oFJZEHLbXH5ApeO4YmlhxYQknCRvCo04DEVlxkKgpou-6kejhjxszfjDFW-M6_hIW0mOX1N-Luhm5V18N0hf-WpInwi0GxqkMqMDivcY6XcAM3M12CqVm-xLjrhJG9ucicyHFkvCMq-z-DyK9O_-kQ' },
+                { name: 'AWP | Древесная гадюка', rarity: 'common', price: 100, w: 800, img: iUrl + '-9a81dlWLwJ2UUGcVs_nsVtzdOEdtWwKGZZLQHTxDZ7I56KU0Zwwo4NUX4oFJZEHLbXH5ApeO4YmlhxYQknCRvCo04DEVlxkKgpot621FAR17PLfYQJD_9W7m5a0mvLwOq7c2D4G65xz0-2ZpNmti1fl_xVva1qwclc8cApvMInmDQa2yO_m0ZTtutjMmHVg7HYr-z-DyI4jCxsS' },
+                { name: 'Desert Eagle | Дракон-предводитель', rarity: 'common', price: 75, w: 800, img: iUrl + '-9a81dlWLwJ2UUGcVs_nsVtzdOEdtWwKGZZLQHTxDZ7I56KU0Zwwo4NUX4oFJZEHLbXH5ApeO4YmlhxYQknCRvCo04DEVlxkKgoWeabqOANf-r-fFAzE2ci0m1-Gnvn8Oq_UmnhD-Ml0juz--YXygED6-UY6ZGv0cYOQd1M4NVnV_Va4xe25hp-0u53LnSdh7D5iuyisxxw-LgA1' },
+                { name: 'Glock-18 | Дух воды', rarity: 'common', price: 60, w: 800, img: iUrl + '-9a81dlWLwJ2UUGcVs_nsVtzdOEdtWwKGZZLQHTxDZ7I56KU0Zwwo4NUX4oFJZEHLbXH5ApeO4YmlhxYQknCRvCo04DEVlxkKgposbaqKAxf0v73dDBH_t26q4S0m_7zO6_ck29Y_cg_2-yQpYmi0FHg-kQ9Yjv0JoGddlU2MA3Z8lLqyOnpgZDt6Z3JzyAwuSIj5HuJlwv330_5p-Rviw' },
+                { name: 'USP-S | Неонуар', rarity: 'common', price: 85, w: 800, img: iUrl + '-9a81dlWLwJ2UUGcVs_nsVtzdOEdtWwKGZZLQHTxDZ7I56KU0Zwwo4NUX4oFJZEHLbXH5ApeO4YmlhxYQknCRvCo04DEVlxkKgpoo6m1FBRp3_bGcTpN0924q4iOluHtfevVxzhTscYpjOqV8NmkigC280o6MWyicNXHdAQ2ZV3T8gToyOzrgp7ovpjMySNkpGB8snP8q3sA' },
+                { name: 'P250 | Картель', rarity: 'common', price: 50, w: 800, img: iUrl + '-9a81dlWLwJ2UUGcVs_nsVtzdOEdtWwKGZZLQHTxDZ7I56KU0Zwwo4NUX4oFJZEHLbXH5ApeO4YmlhxYQknCRvCo04DEVlxkKgpopujwezhhwAMzcTFR09C_k4mClvnmJb_VlT1RsMhwj-zDo9j0hAawq0E9Z2r1JdTGdwU7ZwzRqVC5lrm60JO5vc7Pmns3pGB8stMvYt7U' },
+                { name: 'M4A1-S | Ночной кошмар', rarity: 'common', price: 110, w: 800, img: iUrl + '-9a81dlWLwJ2UUGcVs_nsVtzdOEdtWwKGZZLQHTxDZ7I56KU0Zwwo4NUX4oFJZEHLbXH5ApeO4YmlhxYQknCRvCo04DEVlxkKgpou-6kcjhozezbDzhN09G_k4if2a_8ML_Wk1Rcw1RlvjnHptqki1Gy_kM9azqlcYSWJwE2Z1zT8wTswLy8hJHu7ZTNzSBk73Nw5nfVmhS1hxwfbeK5yQ' },
+                { name: 'Tec-9 | Опустошитель', rarity: 'common', price: 65, w: 800, img: iUrl + '-9a81dlWLwJ2UUGcVs_nsVtzdOEdtWwKGZZLQHTxDZ7I56KU0Zwwo4NUX4oFJZEHLbXH5ApeO4YmlhxYQknCRvCo04DEVlxkKgoWeabqOANf-r-fFAzE2ci0mVW0m_7zO6_cmnhD-Ml0juz--YXygED6rUo4ZWvydoXAdFQ3aF7X-QC7krjug8PpuM-bmiNluCEr4SuMzBywiAYMMLK8kEtnwQ' },
+                { name: 'Five-SeveN | Скоростной зверь', rarity: 'common', price: 70, w: 800, img: iUrl + '-9a81dlWLwJ2UUGcVs_nsVtzdOEdtWwKGZZLQHTxDZ7I56KU0Zwwo4NUX4oFJZEHLbXH5ApeO4YmlhxYQknCRvCo04DEVlxkKgoWeabqOANf-r-fFAzE2ci0m1-Gnvn8Oq_UmnhD-Ml0juz--YXygED6-UY6ZGv0cYOQd1M4NVnV_Va4xe25hp-0u53LnSdh7D5iuyisxxw-LgA1' },
+                { name: 'MAC-10 | Неоновый гонщик', rarity: 'common', price: 95, w: 800, img: iUrl + '-9a81dlWLwJ2UUGcVs_nsVtzdOEdtWwKGZZLQHTxDZ7I56KU0Zwwo4NUX4oFJZEHLbXH5ApeO4YmlhxYQknCRvCo04DEVlxkKgoWeabqOANf-r-fFAzE2ci0mVW0m_7zO6_cmnhD-Ml0juz--YXygED6rUo4ZWvydoXAdFQ3aF7X-QC7krjug8PpuM-bmiNluCEr4SuMzBywiAYMMLK8kEtnwQ' },
+                { name: 'MP7 | Кровавый спорт', rarity: 'common', price: 85, w: 800, img: iUrl + '-9a81dlWLwJ2UUGcVs_nsVtzdOEdtWwKGZZLQHTxDZ7I56KU0Zwwo4NUX4oFJZEHLbXH5ApeO4YmlhxYQknCRvCo04DEVlxkKgoWeabqOANf-r-fFAzE2ci0m1-Gnvn8Oq_UmnhD-Ml0juz--YXygED6-UY6ZGv0cYOQd1M4NVnV_Va4xe25hp-0u53LnSdh7D5iuyisxxw-LgA1' },
+                { name: 'UMP-45 | Первобытный саблезуб', rarity: 'common', price: 75, w: 800, img: iUrl + '-9a81dlWLwJ2UUGcVs_nsVtzdOEdtWwKGZZLQHTxDZ7I56KU0Zwwo4NUX4oFJZEHLbXH5ApeO4YmlhxYQknCRvCo04DEVlxkKgoWeabqOANf-r-fFAzE2ci0mVW0m_7zO6_cmnhD-Ml0juz--YXygED6rUo4ZWvydoXAdFQ3aF7X-QC7krjug8PpuM-bmiNluCEr4SuMzBywiAYMMLK8kEtnwQ' },
+                { name: 'P90 | Азимов', rarity: 'common', price: 105, w: 800, img: iUrl + '-9a81dlWLwJ2UUGcVs_nsVtzdOEdtWwKGZZLQHTxDZ7I56KU0Zwwo4NUX4oFJZEHLbXH5ApeO4YmlhxYQknCRvCo04DEVlxkKgoWeabqOANf-r-fFAzE2ci0m1-Gnvn8Oq_UmnhD-Ml0juz--YXygED6-UY6ZGv0cYOQd1M4NVnV_Va4xe25hp-0u53LnSdh7D5iuyisxxw-LgA1' },
+                { name: 'PP-Bizon | Суд Анубиса', rarity: 'common', price: 55, w: 800, img: iUrl + '-9a81dlWLwJ2UUGcVs_nsVtzdOEdtWwKGZZLQHTxDZ7I56KU0Zwwo4NUX4oFJZEHLbXH5ApeO4YmlhxYQknCRvCo04DEVlxkKgoWeabqOANf-r-fFAzE2ci0mVW0m_7zO6_cmnhD-Ml0juz--YXygED6rUo4ZWvydoXAdFQ3aF7X-QC7krjug8PpuM-bmiNluCEr4SuMzBywiAYMMLK8kEtnwQ' },
+                { name: 'Galil AR | Цербер', rarity: 'common', price: 65, w: 800, img: iUrl + '-9a81dlWLwJ2UUGcVs_nsVtzdOEdtWwKGZZLQHTxDZ7I56KU0Zwwo4NUX4oFJZEHLbXH5ApeO4YmlhxYQknCRvCo04DEVlxkKgoWeabqOANf-r-fFAzE2ci0m1-Gnvn8Oq_UmnhD-Ml0juz--YXygED6-UY6ZGv0cYOQd1M4NVnV_Va4xe25hp-0u53LnSdh7D5iuyisxxw-LgA1' },
+                { name: 'FAMAS | Валентность', rarity: 'common', price: 70, w: 800, img: iUrl + '-9a81dlWLwJ2UUGcVs_nsVtzdOEdtWwKGZZLQHTxDZ7I56KU0Zwwo4NUX4oFJZEHLbXH5ApeO4YmlhxYQknCRvCo04DEVlxkKgoWeabqOANf-r-fFAzE2ci0mVW0m_7zO6_cmnhD-Ml0juz--YXygED6rUo4ZWvydoXAdFQ3aF7X-QC7krjug8PpuM-bmiNluCEr4SuMzBywiAYMMLK8kEtnwQ' },
+                { name: 'SSG 08 | Пламя дракона', rarity: 'common', price: 115, w: 800, img: iUrl + '-9a81dlWLwJ2UUGcVs_nsVtzdOEdtWwKGZZLQHTxDZ7I56KU0Zwwo4NUX4oFJZEHLbXH5ApeO4YmlhxYQknCRvCo04DEVlxkKgoWeabqOANf-r-fFAzE2ci0m1-Gnvn8Oq_UmnhD-Ml0juz--YXygED6-UY6ZGv0cYOQd1M4NVnV_Va4xe25hp-0u53LnSdh7D5iuyisxxw-LgA1' },
+                { name: 'AUG | Акихабара', rarity: 'common', price: 125, w: 800, img: iUrl + '-9a81dlWLwJ2UUGcVs_nsVtzdOEdtWwKGZZLQHTxDZ7I56KU0Zwwo4NUX4oFJZEHLbXH5ApeO4YmlhxYQknCRvCo04DEVlxkKgoWeabqOANf-r-fFAzE2ci0mVW0m_7zO6_cmnhD-Ml0juz--YXygED6rUo4ZWvydoXAdFQ3aF7X-QC7krjug8PpuM-bmiNluCEr4SuMzBywiAYMMLK8kEtnwQ' },
+                { name: 'SG 553 | Интеграл', rarity: 'common', price: 95, w: 800, img: iUrl + '-9a81dlWLwJ2UUGcVs_nsVtzdOEdtWwKGZZLQHTxDZ7I56KU0Zwwo4NUX4oFJZEHLbXH5ApeO4YmlhxYQknCRvCo04DEVlxkKgoWeabqOANf-r-fFAzE2ci0m1-Gnvn8Oq_UmnhD-Ml0juz--YXygED6-UY6ZGv0cYOQd1M4NVnV_Va4xe25hp-0u53LnSdh7D5iuyisxxw-LgA1' },
+
+                // 5 средних
+                { name: 'AK-47 | Кровавый спорт', rarity: 'rare', price: 400, w: 50, img: iUrl + '-9a81dlWLwJ2UUGcVs_nsVtzdOEdtWwKGZZLQHTxDZ7I56KU0Zwwo4NUX4oFJZEHLbXH5ApeO4YmlhxYQknCRvCo04DEVlxkKgpot7HxfDhjxszJemkV09-5lpKKqPrxN7LEmyVQ7MEpiLuX8I-k3QXsqRVlZ2GlIYPBdwc4YlvR8gTqxebpg8W_vM-fmHdgvCUn4CndmQv3308mIukPGA' },
+                { name: 'M4A4 | Император', rarity: 'rare', price: 450, w: 40, img: iUrl + '-9a81dlWLwJ2UUGcVs_nsVtzdOEdtWwKGZZLQHTxDZ7I56KU0Zwwo4NUX4oFJZEHLbXH5ApeO4YmlhxYQknCRvCo04DEVlxkKgpou-6kejhjxszfjDFW-M6_hIW0mOX1N-Luhm5V18N0hf-WpInwi0GxqkMqMDivcY6XcAM3M12CqVm-xLjrhJG9ucicyHFkvCMq-z-DyK9O_-kQ' },
+                { name: 'AWP | Дикое пламя', rarity: 'rare', price: 500, w: 30, img: iUrl + '-9a81dlWLwJ2UUGcVs_nsVtzdOEdtWwKGZZLQHTxDZ7I56KU0Zwwo4NUX4oFJZEHLbXH5ApeO4YmlhxYQknCRvCo04DEVlxkKgpot621FAR17PLfYQJD_9W7m5a0mvLwOq7c2D4G65xz0-2ZpNmti1fl_xVva1qwclc8cApvMInmDQa2yO_m0ZTtutjMmHVg7HYr-z-DyI4jCxsS' },
+                { name: 'Desert Eagle | Изумрудный Ермунганд', rarity: 'rare', price: 550, w: 25, img: iUrl + '-9a81dlWLwJ2UUGcVs_nsVtzdOEdtWwKGZZLQHTxDZ7I56KU0Zwwo4NUX4oFJZEHLbXH5ApeO4YmlhxYQknCRvCo04DEVlxkKgoWeabqOANf-r-fFAzE2ci0mVW0m_7zO6_cmnhD-Ml0juz--YXygED6rUo4ZWvydoXAdFQ3aF7X-QC7krjug8PpuM-bmiNluCEr4SuMzBywiAYMMLK8kEtnwQ' },
+                { name: 'M4A1-S | Огонь Чантико', rarity: 'rare', price: 380, w: 45, img: iUrl + '-9a81dlWLwJ2UUGcVs_nsVtzdOEdtWwKGZZLQHTxDZ7I56KU0Zwwo4NUX4oFJZEHLbXH5ApeO4YmlhxYQknCRvCo04DEVlxkKgpou-6kcjhozezbDzhN09G_k4if2a_8ML_Wk1Rcw1RlvjnHptqki1Gy_kM9azqlcYSWJwE2Z1zT8wTswLy8hJHu7ZTNzSBk73Nw5nfVmhS1hxwfbeK5yQ' },
+
+                // 2 топа
+                { name: 'AWP | Гунгнир', rarity: 'gold', price: 10000, w: 2, img: iUrl + '-9a81dlWLwJ2UUGcVs_nsVtzdOEdtWwKGZZLQHTxDZ7I56KU0Zwwo4NUX4oFJZEHLbXH5ApeO4YmlhxYQknCRvCo04DEVlxkKgpot621FAR17PLfYQJD_9W7m5a0mvLwOq7c2D4G65xz0-2ZpNmti1fl_xVva1qwclc8cApvMInmDQa2yO_m0ZTtutjMmHVg7HYr-z-DyI4jCxsS' },
+                { name: 'Керамбит | Легенды', rarity: 'gold', price: 15000, w: 1, img: iUrl + '-9a81dlWLwJ2UUGcVs_nsVtzdOEdtWwKGZZLQHTxDZ7I56KU0Zwwo4NUX4oFJZEHLbXH5ApeO4YmlhxYQknCRvCo04DEVlxkKgpovbSsLQJf2OTEcgFO_c-1mY-DkvbiM7_Sl29U18l4jeHVu43zjAex_UQ9az_xd4SVI1c3aFrQrFS8le2-gMK97c_InHpqsykgtH6OlhC-1B0eb7NshqWACQLJDgY1U1w' }
+            ],
+
+            // 16. ADMIN CHOICE (Выбор Админа. Окуп 8%. Цена: 1500)
+            admin_choice: [
+                // 20 дешевых пушек
+                { name: 'AK-47 | Снежный вихрь', rarity: 'common', price: 100, w: 800, img: iUrl + '-9a81dlWLwJ2UUGcVs_nsVtzdOEdtWwKGZZLQHTxDZ7I56KU0Zwwo4NUX4oFJZEHLbXH5ApeO4YmlhxYQknCRvCo04DEVlxkKgpot7HxfDhjxszJemkV09-5lpKKqPrxN7LEmyVQ7MEpiLuX8I-k3QXsqRVlZ2GlIYPBdwc4YlvR8gTqxebpg8W_vM-fmHdgvCUn4CndmQv3308mIukPGA' },
+                { name: 'M4A4 | Радиационная опасность', rarity: 'common', price: 110, w: 800, img: iUrl + '-9a81dlWLwJ2UUGcVs_nsVtzdOEdtWwKGZZLQHTxDZ7I56KU0Zwwo4NUX4oFJZEHLbXH5ApeO4YmlhxYQknCRvCo04DEVlxkKgpou-6kejhjxszfjDFW-M6_hIW0mOX1N-Luhm5V18N0hf-WpInwi0GxqkMqMDivcY6XcAM3M12CqVm-xLjrhJG9ucicyHFkvCMq-z-DyK9O_-kQ' },
+                { name: 'AWP | Розовый слон', rarity: 'common', price: 120, w: 800, img: iUrl + '-9a81dlWLwJ2UUGcVs_nsVtzdOEdtWwKGZZLQHTxDZ7I56KU0Zwwo4NUX4oFJZEHLbXH5ApeO4YmlhxYQknCRvCo04DEVlxkKgpot621FAR17PLfYQJD_9W7m5a0mvLwOq7c2D4G65xz0-2ZpNmti1fl_xVva1qwclc8cApvMInmDQa2yO_m0ZTtutjMmHVg7HYr-z-DyI4jCxsS' },
+                { name: 'Desert Eagle | Буря на закате', rarity: 'common', price: 95, w: 800, img: iUrl + '-9a81dlWLwJ2UUGcVs_nsVtzdOEdtWwKGZZLQHTxDZ7I56KU0Zwwo4NUX4oFJZEHLbXH5ApeO4YmlhxYQknCRvCo04DEVlxkKgoWeabqOANf-r-fFAzE2ci0m1-Gnvn8Oq_UmnhD-Ml0juz--YXygED6-UY6ZGv0cYOQd1M4NVnV_Va4xe25hp-0u53LnSdh7D5iuyisxxw-LgA1' },
+                { name: 'Glock-18 | Татуировка дракона', rarity: 'common', price: 80, w: 800, img: iUrl + '-9a81dlWLwJ2UUGcVs_nsVtzdOEdtWwKGZZLQHTxDZ7I56KU0Zwwo4NUX4oFJZEHLbXH5ApeO4YmlhxYQknCRvCo04DEVlxkKgposbaqKAxf0v73dDBH_t26q4S0m_7zO6_ck29Y_cg_2-yQpYmi0FHg-kQ9Yjv0JoGddlU2MA3Z8lLqyOnpgZDt6Z3JzyAwuSIj5HuJlwv330_5p-Rviw' },
+                { name: 'USP-S | Орион', rarity: 'common', price: 105, w: 800, img: iUrl + '-9a81dlWLwJ2UUGcVs_nsVtzdOEdtWwKGZZLQHTxDZ7I56KU0Zwwo4NUX4oFJZEHLbXH5ApeO4YmlhxYQknCRvCo04DEVlxkKgpoo6m1FBRp3_bGcTpN0924q4iOluHtfevVxzhTscYpjOqV8NmkigC280o6MWyicNXHdAQ2ZV3T8gToyOzrgp7ovpjMySNkpGB8snP8q3sA' },
+                { name: 'P250 | Ядерная угроза', rarity: 'common', price: 70, w: 800, img: iUrl + '-9a81dlWLwJ2UUGcVs_nsVtzdOEdtWwKGZZLQHTxDZ7I56KU0Zwwo4NUX4oFJZEHLbXH5ApeO4YmlhxYQknCRvCo04DEVlxkKgpopujwezhhwAMzcTFR09C_k4mClvnmJb_VlT1RsMhwj-zDo9j0hAawq0E9Z2r1JdTGdwU7ZwzRqVC5lrm60JO5vc7Pmns3pGB8stMvYt7U' },
+                { name: 'M4A1-S | Шедевр', rarity: 'common', price: 130, w: 800, img: iUrl + '-9a81dlWLwJ2UUGcVs_nsVtzdOEdtWwKGZZLQHTxDZ7I56KU0Zwwo4NUX4oFJZEHLbXH5ApeO4YmlhxYQknCRvCo04DEVlxkKgpou-6kcjhozezbDzhN09G_k4if2a_8ML_Wk1Rcw1RlvjnHptqki1Gy_kM9azqlcYSWJwE2Z1zT8wTswLy8hJHu7ZTNzSBk73Nw5nfVmhS1hxwfbeK5yQ' },
+                { name: 'Tec-9 | Терраса', rarity: 'common', price: 85, w: 800, img: iUrl + '-9a81dlWLwJ2UUGcVs_nsVtzdOEdtWwKGZZLQHTxDZ7I56KU0Zwwo4NUX4oFJZEHLbXH5ApeO4YmlhxYQknCRvCo04DEVlxkKgoWeabqOANf-r-fFAzE2ci0mVW0m_7zO6_cmnhD-Ml0juz--YXygED6rUo4ZWvydoXAdFQ3aF7X-QC7krjug8PpuM-bmiNluCEr4SuMzBywiAYMMLK8kEtnwQ' },
+                { name: 'Five-SeveN | Неоновый гонщик', rarity: 'common', price: 90, w: 800, img: iUrl + '-9a81dlWLwJ2UUGcVs_nsVtzdOEdtWwKGZZLQHTxDZ7I56KU0Zwwo4NUX4oFJZEHLbXH5ApeO4YmlhxYQknCRvCo04DEVlxkKgoWeabqOANf-r-fFAzE2ci0m1-Gnvn8Oq_UmnhD-Ml0juz--YXygED6-UY6ZGv0cYOQd1M4NVnV_Va4xe25hp-0u53LnSdh7D5iuyisxxw-LgA1' },
+                { name: 'MAC-10 | Градиент', rarity: 'common', price: 115, w: 800, img: iUrl + '-9a81dlWLwJ2UUGcVs_nsVtzdOEdtWwKGZZLQHTxDZ7I56KU0Zwwo4NUX4oFJZEHLbXH5ApeO4YmlhxYQknCRvCo04DEVlxkKgoWeabqOANf-r-fFAzE2ci0mVW0m_7zO6_cmnhD-Ml0juz--YXygED6rUo4ZWvydoXAdFQ3aF7X-QC7krjug8PpuM-bmiNluCEr4SuMzBywiAYMMLK8kEtnwQ' },
+                { name: 'MP7 | Океанская пена', rarity: 'common', price: 105, w: 800, img: iUrl + '-9a81dlWLwJ2UUGcVs_nsVtzdOEdtWwKGZZLQHTxDZ7I56KU0Zwwo4NUX4oFJZEHLbXH5ApeO4YmlhxYQknCRvCo04DEVlxkKgoWeabqOANf-r-fFAzE2ci0m1-Gnvn8Oq_UmnhD-Ml0juz--YXygED6-UY6ZGv0cYOQd1M4NVnV_Va4xe25hp-0u53LnSdh7D5iuyisxxw-LgA1' },
+                { name: 'UMP-45 | Радиоактивные осадки', rarity: 'common', price: 95, w: 800, img: iUrl + '-9a81dlWLwJ2UUGcVs_nsVtzdOEdtWwKGZZLQHTxDZ7I56KU0Zwwo4NUX4oFJZEHLbXH5ApeO4YmlhxYQknCRvCo04DEVlxkKgoWeabqOANf-r-fFAzE2ci0mVW0m_7zO6_cmnhD-Ml0juz--YXygED6rUo4ZWvydoXAdFQ3aF7X-QC7krjug8PpuM-bmiNluCEr4SuMzBywiAYMMLK8kEtnwQ' },
+                { name: 'P90 | Изумрудный дракон', rarity: 'common', price: 125, w: 800, img: iUrl + '-9a81dlWLwJ2UUGcVs_nsVtzdOEdtWwKGZZLQHTxDZ7I56KU0Zwwo4NUX4oFJZEHLbXH5ApeO4YmlhxYQknCRvCo04DEVlxkKgoWeabqOANf-r-fFAzE2ci0m1-Gnvn8Oq_UmnhD-Ml0juz--YXygED6-UY6ZGv0cYOQd1M4NVnV_Va4xe25hp-0u53LnSdh7D5iuyisxxw-LgA1' },
+                { name: 'PP-Bizon | Азарт', rarity: 'common', price: 75, w: 800, img: iUrl + '-9a81dlWLwJ2UUGcVs_nsVtzdOEdtWwKGZZLQHTxDZ7I56KU0Zwwo4NUX4oFJZEHLbXH5ApeO4YmlhxYQknCRvCo04DEVlxkKgoWeabqOANf-r-fFAzE2ci0mVW0m_7zO6_cmnhD-Ml0juz--YXygED6rUo4ZWvydoXAdFQ3aF7X-QC7krjug8PpuM-bmiNluCEr4SuMzBywiAYMMLK8kEtnwQ' },
+                { name: 'Galil AR | Синий титан', rarity: 'common', price: 85, w: 800, img: iUrl + '-9a81dlWLwJ2UUGcVs_nsVtzdOEdtWwKGZZLQHTxDZ7I56KU0Zwwo4NUX4oFJZEHLbXH5ApeO4YmlhxYQknCRvCo04DEVlxkKgoWeabqOANf-r-fFAzE2ci0m1-Gnvn8Oq_UmnhD-Ml0juz--YXygED6-UY6ZGv0cYOQd1M4NVnV_Va4xe25hp-0u53LnSdh7D5iuyisxxw-LgA1' },
+                { name: 'FAMAS | Остаточное изображение', rarity: 'common', price: 90, w: 800, img: iUrl + '-9a81dlWLwJ2UUGcVs_nsVtzdOEdtWwKGZZLQHTxDZ7I56KU0Zwwo4NUX4oFJZEHLbXH5ApeO4YmlhxYQknCRvCo04DEVlxkKgoWeabqOANf-r-fFAzE2ci0mVW0m_7zO6_cmnhD-Ml0juz--YXygED6rUo4ZWvydoXAdFQ3aF7X-QC7krjug8PpuM-bmiNluCEr4SuMzBywiAYMMLK8kEtnwQ' },
+                { name: 'SSG 08 | Кровь в воде', rarity: 'common', price: 135, w: 800, img: iUrl + '-9a81dlWLwJ2UUGcVs_nsVtzdOEdtWwKGZZLQHTxDZ7I56KU0Zwwo4NUX4oFJZEHLbXH5ApeO4YmlhxYQknCRvCo04DEVlxkKgoWeabqOANf-r-fFAzE2ci0m1-Gnvn8Oq_UmnhD-Ml0juz--YXygED6-UY6ZGv0cYOQd1M4NVnV_Va4xe25hp-0u53LnSdh7D5iuyisxxw-LgA1' },
+                { name: 'AUG | Сид Мид', rarity: 'common', price: 145, w: 800, img: iUrl + '-9a81dlWLwJ2UUGcVs_nsVtzdOEdtWwKGZZLQHTxDZ7I56KU0Zwwo4NUX4oFJZEHLbXH5ApeO4YmlhxYQknCRvCo04DEVlxkKgoWeabqOANf-r-fFAzE2ci0mVW0m_7zO6_cmnhD-Ml0juz--YXygED6rUo4ZWvydoXAdFQ3aF7X-QC7krjug8PpuM-bmiNluCEr4SuMzBywiAYMMLK8kEtnwQ' },
+                { name: 'SG 553 | Бульдозер', rarity: 'common', price: 115, w: 800, img: iUrl + '-9a81dlWLwJ2UUGcVs_nsVtzdOEdtWwKGZZLQHTxDZ7I56KU0Zwwo4NUX4oFJZEHLbXH5ApeO4YmlhxYQknCRvCo04DEVlxkKgoWeabqOANf-r-fFAzE2ci0m1-Gnvn8Oq_UmnhD-Ml0juz--YXygED6-UY6ZGv0cYOQd1M4NVnV_Va4xe25hp-0u53LnSdh7D5iuyisxxw-LgA1' },
+
+                // 5 средних
+                { name: 'AK-47 | Огненный змей', rarity: 'rare', price: 600, w: 50, img: iUrl + '-9a81dlWLwJ2UUGcVs_nsVtzdOEdtWwKGZZLQHTxDZ7I56KU0Zwwo4NUX4oFJZEHLbXH5ApeO4YmlhxYQknCRvCo04DEVlxkKgpot7HxfDhjxszJemkV09-5lpKKqPrxN7LEmyVQ7MEpiLuX8I-k3QXsqRVlZ2GlIYPBdwc4YlvR8gTqxebpg8W_vM-fmHdgvCUn4CndmQv3308mIukPGA' },
+                { name: 'M4A4 | Посейдон', rarity: 'rare', price: 650, w: 40, img: iUrl + '-9a81dlWLwJ2UUGcVs_nsVtzdOEdtWwKGZZLQHTxDZ7I56KU0Zwwo4NUX4oFJZEHLbXH5ApeO4YmlhxYQknCRvCo04DEVlxkKgpou-6kejhjxszfjDFW-M6_hIW0mOX1N-Luhm5V18N0hf-WpInwi0GxqkMqMDivcY6XcAM3M12CqVm-xLjrhJG9ucicyHFkvCMq-z-DyK9O_-kQ' },
+                { name: 'AWP | Бах', rarity: 'rare', price: 700, w: 30, img: iUrl + '-9a81dlWLwJ2UUGcVs_nsVtzdOEdtWwKGZZLQHTxDZ7I56KU0Zwwo4NUX4oFJZEHLbXH5ApeO4YmlhxYQknCRvCo04DEVlxkKgpot621FAR17PLfYQJD_9W7m5a0mvLwOq7c2D4G65xz0-2ZpNmti1fl_xVva1qwclc8cApvMInmDQa2yO_m0ZTtutjMmHVg7HYr-z-DyI4jCxsS' },
+                { name: 'Desert Eagle | Фенек', rarity: 'rare', price: 750, w: 25, img: iUrl + '-9a81dlWLwJ2UUGcVs_nsVtzdOEdtWwKGZZLQHTxDZ7I56KU0Zwwo4NUX4oFJZEHLbXH5ApeO4YmlhxYQknCRvCo04DEVlxkKgoWeabqOANf-r-fFAzE2ci0mVW0m_7zO6_cmnhD-Ml0juz--YXygED6rUo4ZWvydoXAdFQ3aF7X-QC7krjug8PpuM-bmiNluCEr4SuMzBywiAYMMLK8kEtnwQ' },
+                { name: 'Спортивные перчатки | Порок', rarity: 'rare', price: 580, w: 45, img: iUrl + '-9a81dlWLwJ2UUGcVs_nsVtzdOEdtWwKGZZLQHTxDZ7I56KU0Zwwo4NUX4oFJZEHLbXH5ApeO4YmlhxYQknCRvCo04DEVlxkKgpovbSsLQJfwPjNfThW49KJnJm0kfjmILDSh2pC-sRzj-HPpoqtjVGyqkBkYzindoecegRrZljZ_ATvxee7hMfqtJrVnyb4nCRgslnO' },
+
+                // 2 топа
+                { name: 'AWP | История о драконе', rarity: 'gold', price: 15000, w: 2, img: iUrl + '-9a81dlWLwJ2UUGcVs_nsVtzdOEdtWwKGZZLQHTxDZ7I56KU0Zwwo4NUX4oFJZEHLbXH5ApeO4YmlhxYQknCRvCo04DEVlxkKgpot621FAR17PLfYQJD_9W7m5a0mvLwOq7c2D4G65xz0-2ZpNmti1fl_xVva1qwclc8cApvMInmDQa2yO_m0ZTtutjMmHVg7HYr-z-DyI4jCxsS' },
+                { name: 'M4A4 | Вой', rarity: 'gold', price: 20000, w: 1, img: iUrl + '-9a81dlWLwJ2UUGcVs_nsVtzdOEdtWwKGZZLQHTxDZ7I56KU0Zwwo4NUX4oFJZEHLbXH5ApeO4YmlhxYQknCRvCo04DEVlxkKgpou-6kejhz2v_Nfz5H_uO1gb-Gw_alIITfn2xZ_Ishi-TOyoD8j1yg-RE_Y2-gdYTHdlRvMFiE-APqxOu805Hu6pzByCAx7CMg-z-DyG2q8QvP' }
+            ]
+        }; // БАЗА КЕЙСОВ И СКИНОВ ЗАКОНЧЕНА!
+
+        // --- ГЕНЕРАТОР КАРТОЧЕК НА ГЛАВНОЙ СТРАНИЦЕ ---
+        const casesConfig = [
+            { id: 'eco', name: 'Эко Кейс', price: 50, img: 'https://placehold.co/100x80/1e293b/FFF?text=ECO' },
+            { id: 'normal', name: 'Обычный', price: 250, img: 'https://placehold.co/100x80/1e293b/FFF?text=NORMAL' },
+            { id: 'knife', name: 'Ножевой', price: 2500, img: 'https://placehold.co/100x80/1e293b/FFF?text=KNIFE' },
+            { id: 'sniper', name: 'Снайперский', price: 400, img: 'https://placehold.co/100x80/1e293b/FFF?text=SNIPER' },
+            { id: 'pistol', name: 'Пистолетный', price: 150, img: 'https://placehold.co/100x80/1e293b/FFF?text=PISTOL' },
+            { id: 'glove', name: 'Перчаточный', price: 2200, img: 'https://placehold.co/100x80/1e293b/FFF?text=GLOVE' },
+            { id: 'secret', name: 'Секретный', price: 5000, img: 'https://placehold.co/100x80/1e293b/FFF?text=SECRET' },
+            { id: 'old_school', name: 'Олдскул', price: 150, img: 'https://placehold.co/100x80/1e293b/FFF?text=OLD' },
+            { id: 'blue_dye', name: 'Синяя Дымка', price: 80, img: 'https://placehold.co/100x80/1e293b/FFF?text=BLUE' },
+            { id: 'red_line', name: 'Красная Линия', price: 600, img: 'https://placehold.co/100x80/1e293b/FFF?text=RED' },
+            { id: 'gold_luck', name: 'Золотая Удача', price: 1000, img: 'https://placehold.co/100x80/1e293b/FFF?text=GOLD' },
+            { id: 'agent_case', name: 'Агенты', price: 300, img: 'https://placehold.co/100x80/1e293b/FFF?text=AGENT' },
+            { id: 'sticker_capsule', name: 'Наклейки', price: 40, img: 'https://placehold.co/100x80/1e293b/FFF?text=STICKER' },
+            { id: 'pro_player', name: 'Pro Player', price: 800, img: 'https://placehold.co/100x80/1e293b/FFF?text=PRO' },
+            { id: 'nightmare', name: 'Кошмар', price: 1200, img: 'https://placehold.co/100x80/1e293b/FFF?text=DARK' },
+            { id: 'admin_choice', name: 'Выбор Админа', price: 1500, img: 'https://placehold.co/100x80/1e293b/FFF?text=ADMIN' }
+        ];
+
+        // Отрисовка кейсов в меню
+        const grid = document.getElementById('casesGrid');
+        casesConfig.forEach(c => {
+            grid.innerHTML += `<div class="card"><img src="${c.img}"><h4>${c.name}</h4><p style="color:var(--ylw);font-weight:bold;margin-top:0;">★ ${c.price}</p><button class="btn" onclick="openPrev('${c.id}', ${c.price}, '${c.name}')">Открыть</button></div>`;
+        });
+        // --- ЛОГИКА ПРИЛОЖЕНИЯ (СОХРАНЕНИЕ, РУЛЕТКА, ИНВЕНТАРЬ) ---
+        let bal = 0, inv = [], tUrl = '', spn = 0;
+        let cCase = '', cPrice = 0;
+        let droppedItem = null;
+
+        // Сохранение в облако Телеграма
+        function save() {
+            tg.CloudStorage.setItem('ld_data', JSON.stringify({ b: bal, i: inv, t: tUrl }));
+            document.getElementById('stars').innerText = bal;
+        }
+
+        // Загрузка при входе
+        function load() {
+            tg.CloudStorage.getItem('ld_data', (e, v) => {
+                if (v) { const d = JSON.parse(v); bal = d.b || 0; inv = d.i || []; tUrl = d.t || ''; }
+                document.getElementById('tUrl').value = tUrl;
+
+                // Генерируем реф-ссылку по ID юзера
+                const uid = tg.initDataUnsafe.user ? tg.initDataUnsafe.user.id : 'guest';
+                document.getElementById('refLink').value = `https://t.me/LuckyCsDrop_bot?start=${uid}`;
+
+                document.getElementById('stars').innerText = bal;
+            });
+        }
+
+        // Переключение вкладок меню
+        function showSec(id) {
+            document.querySelectorAll('.sec').forEach(e => e.classList.add('hidden'));
+            document.getElementById('previewArea').classList.add('hidden');
+            document.getElementById(id).classList.remove('hidden');
+            document.querySelectorAll('.nav button').forEach(e => e.classList.remove('act'));
+            document.getElementById('n-' + id).classList.add('act');
+            if (id === 'inventory') rInv();
+        }
+
+        // Открытие превью кейса
+        function openPrev(c, p, t) {
+            cCase = c; cPrice = p;
+            document.querySelectorAll('.sec').forEach(e => e.classList.add('hidden'));
+            document.getElementById('pTitle').innerText = t;
+
+            let l = document.getElementById('pList'); l.innerHTML = '';
+
+            // Считаем общий вес для процентов
+            let tw = db[c].reduce((s, i) => s + i.w, 0);
+
+            // Выводим скины, сортируя от дешевых к дорогим
+            [...db[c]].sort((a, b) => a.price - b.price).forEach(i => {
+                let ch = ((i.w / tw) * 100).toFixed(2); // Процент выпадения
+                l.innerHTML += `<div style="display:flex;align-items:center;padding:10px;border-bottom:1px solid rgba(255,255,255,0.1);font-size:12px;" class="${i.rarity}"><img src="${i.img}" style="width:40px;height:30px;object-fit:contain;margin-right:10px"><span style="flex-grow:1">${i.name}<br><b style="color:var(--ylw)">★ ${i.price}</b></span><b>${ch}%</b></div>`;
+            });
+
+            document.getElementById('rouletteArea').classList.add('hidden');
+            document.getElementById('resArea').classList.add('hidden');
+            document.getElementById('openControls').classList.remove('hidden');
+            document.getElementById('previewArea').classList.remove('hidden');
+            document.getElementById('spinBtn').innerText = `КРУТИТЬ ЗА ★ ${cPrice}`;
+        }
+
+        // Прокрутка рулетки
+        function startRoulette() {
+            if (spn || bal < cPrice) {
+                if (bal < cPrice) tg.showAlert('Недостаточно звезд! Пополни баланс в Профиле.');
+                return;
+            }
+
+            // Списываем баланс
+            bal -= cPrice;
+            spn = 1;
+            save();
+
+            document.getElementById('openControls').classList.add('hidden');
+            document.getElementById('resArea').classList.add('hidden');
+            let rl = document.getElementById('rlLine');
+            document.getElementById('rouletteArea').classList.remove('hidden');
+
+            rl.style.transition = 'none';
+            rl.style.transform = 'translateX(0)';
+            rl.innerHTML = '';
+
+            // Выбор скина с учетом ВЕСОВ (математика жесткого минуса)
+            let tw = db[cCase].reduce((s, i) => s + i.w, 0);
+            let r = Math.random() * tw;
+            for (let it of db[cCase]) {
+                if (r < it.w) { droppedItem = it; break; }
+                r -= it.w;
+            }
+
+            // Генерируем фейковую ленту для анимации (50 скинов)
+            let vi = [];
+            for (let i = 0; i < 50; i++) vi.push(db[cCase][Math.floor(Math.random() * db[cCase].length)]);
+            vi[40] = droppedItem; // Выигрышный скин всегда на 40 позиции
+
+            vi.forEach(i => rl.innerHTML += `<div class="rl-item ${i.rarity}"><img src="${i.img}"><div style="font-size:9px;text-align:center;width:100%;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">${i.name}</div></div>`);
+
+            // Запускаем анимацию
+            setTimeout(() => {
+                rl.style.transition = 'transform 4s cubic-bezier(0.1,0.8,0.2,1)';
+                rl.style.transform = `translateX(-${40 * 100 - window.innerWidth / 2 + 50}px)`;
+            }, 50);
+
+            // Конец анимации, показываем результат
+            setTimeout(() => {
+                inv.push(droppedItem); // Добавляем в инвентарь
+                save();
+                spn = 0;
+                tg.HapticFeedback.notificationOccurred('success');
+
+                document.getElementById('rouletteArea').classList.add('hidden');
+                document.getElementById('resArea').classList.remove('hidden');
+
+                let grid = document.getElementById('resGrid');
+                grid.innerHTML = `<div style="background:rgba(30,41,59,0.9);padding:5px;border-radius:8px;border:1px solid gray;text-align:center;width:80px;" class="${droppedItem.rarity}"><img src="${droppedItem.img}" style="width:100%;height:40px;object-fit:contain"><div style="font-size:8px;overflow:hidden;white-space:nowrap;text-overflow:ellipsis;">${droppedItem.name}</div></div>`;
+
+                document.getElementById('wPriceTotal').innerText = droppedItem.price;
+                document.getElementById('sellDropBtn').innerText = `Продать за ★ ${droppedItem.price}`;
+            }, 4050);
+        }
+
+        // Продажа сразу после выпадения
+        function sellCurrentDrop() {
+            bal += droppedItem.price;
+            inv.pop(); // Удаляем последний добавленный предмет
+            save();
+            tg.HapticFeedback.notificationOccurred('success');
+            showSec('cases');
+        }
+
+        // Отрисовка инвентаря
+        function rInv() {
+            let g = document.getElementById('iGrid'); g.innerHTML = '';
+            if (inv.length === 0) { g.innerHTML = '<p style="grid-column:span 2;text-align:center;color:gray">Пусто. Открой кейс!</p>'; return; }
+
+            [...inv].sort((a, b) => b.price - a.price).forEach((i) => {
+                let rx = inv.findIndex(x => x === i);
+                g.innerHTML += `<div class="card ${i.rarity}"><img src="${i.img}"><div style="font-size:11px;height:30px;overflow:hidden">${i.name}</div><b style="color:var(--ylw)">★ ${i.price}</b><div style="display:flex;gap:5px;margin-top:5px"><button class="btn btn-grn" style="padding:6px;font-size:10px;margin:0" onclick="inv.splice(${rx},1);bal+=${i.price};save();rInv();tg.HapticFeedback.notificationOccurred('success')">Продать</button><button class="btn btn-out" style="padding:6px;font-size:10px;margin:0" onclick="wd(${rx})">Вывод</button></div></div>`;
+            });
+        }
+
+        // Функции профиля и вывода (Сигналы в Python-бота)
+        function saveUrl() { tUrl = document.getElementById('tUrl').value; save(); tg.showAlert('Ссылка сохранена!'); }
+
+        function buy(amount, price) {
+            tg.sendData(JSON.stringify({ action: 'buy', amount: amount, price: price }));
+        }
+
+        function wd(index) {
+            if (!tUrl || (!tUrl.includes('steamcommunity') && !tUrl.includes('steam://'))) return tg.showAlert('Укажите Trade URL в Профиле!');
+            tg.sendData(JSON.stringify({ action: 'withdraw', item: inv[index].name, url: tUrl }));
+            inv.splice(index, 1);
+            save();
+            rInv();
+        }
+
+        function copyRef() { navigator.clipboard.writeText(document.getElementById('refLink').value); tg.showAlert('Ссылка скопирована!'); }
+
+        // Запуск при старте
+        load();
+    </script>
+</body>
+
+</html>
