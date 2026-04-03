@@ -263,6 +263,135 @@
             border-color: #ff0055;
             color: #ff0055;
         }
+
+        /* СТИЛИ АПГРЕЙДА */
+        .upg-arena {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            background: #111;
+            padding: 20px 10px;
+            border-radius: 12px;
+            border: 1px solid #333;
+            margin-bottom: 15px;
+            box-shadow: inset 0 0 20px rgba(0, 0, 0, 0.8);
+        }
+
+        .upg-slot {
+            width: 30%;
+            height: 100px;
+            background: #1a1a1a;
+            border-radius: 10px;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            border: 1px dashed #444;
+            text-align: center;
+            font-size: 10px;
+            box-sizing: border-box;
+            cursor: pointer;
+        }
+
+        .upg-slot img {
+            width: 90%;
+            height: 45px;
+            object-fit: contain;
+        }
+
+        .upg-center {
+            width: 35%;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+
+        .cc-box {
+            position: relative;
+            width: 110px;
+            height: 110px;
+            margin: 0 auto 15px auto;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .cc {
+            width: 100%;
+            height: 100%;
+            border-radius: 50%;
+            background: conic-gradient(var(--ylw) 0%, #222 0%);
+            position: absolute;
+            top: 0;
+            left: 0;
+            box-shadow: 0 0 15px rgba(234, 179, 8, 0.2);
+        }
+
+        .cc-in {
+            width: 80px;
+            height: 80px;
+            background: #111;
+            border-radius: 50%;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            font-weight: bold;
+            font-size: 18px;
+            color: var(--ylw);
+            position: absolute;
+            z-index: 5;
+        }
+
+        .ptr-box {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: 10;
+            transition: transform 3.5s cubic-bezier(0.1, 0.8, 0.2, 1);
+        }
+
+        .u-ptr {
+            position: absolute;
+            top: -8px;
+            left: 50%;
+            margin-left: -8px;
+            width: 0;
+            height: 0;
+            border-left: 8px solid transparent;
+            border-right: 8px solid transparent;
+            border-top: 15px solid var(--ylw);
+            filter: drop-shadow(0 0 5px var(--ylw));
+        }
+
+        .u-lists {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 10px;
+        }
+
+        .u-box {
+            background: rgba(0, 0, 0, 0.5);
+            padding: 10px;
+            border-radius: 10px;
+            height: 250px;
+            overflow-y: auto;
+            border: 1px solid #333;
+        }
+
+        .u-item {
+            background: #1a1a1a;
+            padding: 8px;
+            border-radius: 6px;
+            margin-bottom: 6px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            font-size: 11px;
+            cursor: pointer;
+            border-left: 3px solid gray;
+        }
     </style>
 </head>
 
@@ -301,29 +430,68 @@
     </div>
 
     <div id="cases" class="sec">
-        <div class="grid" id="casesGrid">
-        </div>
+        <div class="grid" id="casesGrid"></div>
     </div>
 
     <div id="inventory" class="sec hidden">
         <h2 style="text-align:center;margin-top:0;">Твои скины</h2>
         <div class="grid" id="iGrid"></div>
     </div>
+
+    <div id="upgrades" class="sec hidden">
+        <div class="upg-arena">
+            <div class="upg-slot" id="uL" onclick="clrU('l')"><span style="color:var(--gry);">Отдаем</span></div>
+            <div class="upg-center">
+                <div class="cc-box">
+                    <div class="cc" id="uCc"></div>
+                    <div class="ptr-box" id="uPtr">
+                        <div class="u-ptr"></div>
+                    </div>
+                    <div class="cc-in" id="uTxt">0%</div>
+                </div>
+                <button class="btn btn-ylw" style="padding:8px;" onclick="doUpg()">АПГРЕЙД</button>
+            </div>
+            <div class="upg-slot" id="uR" onclick="clrU('r')"><span style="color:var(--gry);">Получаем</span></div>
+        </div>
+        <div id="uRes" style="text-align:center;font-weight:bold;margin-bottom:10px;font-size:18px;min-height:22px;">
+        </div>
+        <div class="u-lists">
+            <div class="u-box">
+                <div style="text-align:center;color:gray;font-size:12px;margin-bottom:5px;">Инвентарь</div>
+                <div id="uInv"></div>
+            </div>
+            <div class="u-box">
+                <div style="text-align:center;color:gray;font-size:12px;margin-bottom:5px;">Скины дороже</div>
+                <div id="uTrg"></div>
+            </div>
+        </div>
+    </div>
+
     <div id="tasks" class="sec hidden">
         <div class="c-box" style="text-align:center;">
+            <h3 style="color:var(--ylw);margin-top:0;">Ежедневный бонус</h3>
+            <p style="font-size:13px;color:var(--gry);">Забирай 250 ★ каждые 24 часа!</p>
+            <button class="btn btn-grn" id="dailyBtn" onclick="claimDaily()">Забрать 250 ★</button>
+        </div>
+        <div class="c-box" style="text-align:center;">
+            <h3 style="color:var(--acc);margin-top:0;">Подписка</h3>
+            <p style="font-size:13px;color:var(--gry);">Подпишись на <b>@speedytge</b> и получи +500 ★.</p>
+            <button class="btn btn-ylw" id="subBtn" onclick="claimSub()">Подписаться</button>
+        </div>
+        <div class="c-box" style="text-align:center;">
             <h3 style="color:#10b981;margin-top:0;">Пригласи друга</h3>
-            <p style="font-size:13px;color:var(--gry);">За каждого друга ты получишь <b>+50 ★</b>!<br>(Начисляется
-                ботом)</p>
+            <p style="font-size:13px;color:var(--gry);">За каждого друга ты получишь <b>+50 ★</b>!</p>
             <input type="text" id="refLink" readonly
-                style="width:100%;padding:12px;background:rgba(0,0,0,0.5);color:var(--acc);border:1px dashed var(--acc);border-radius:8px;text-align:center;margin-bottom:10px;">
+                style="width:100%;padding:12px;background:rgba(0,0,0,0.5);color:var(--acc);border:1px dashed var(--acc);border-radius:8px;text-align:center;margin-bottom:10px;box-sizing:border-box;">
             <button class="btn btn-grn" onclick="copyRef()">Скопировать ссылку</button>
         </div>
     </div>
+
     <div id="profile" class="sec hidden">
         <div class="c-box">
             <h3 style="margin-top:0;">Настройки Вывода</h3>
             <input type="text" id="tUrl"
-                style="width:100%;padding:12px;margin-bottom:10px;background:rgba(0,0,0,0.5);color:#fff;border:1px solid rgba(255,255,255,0.2);border-radius:8px;"
+                style="width:100%;padding:12px;margin-bottom:10px;background:rgba(0,0,0,0.5);color:#fff;border:1px solid rgba(255,255,255,0.2);border-radius:8px;box-sizing:border-box;"
                 placeholder="Steam Trade URL...">
             <button class="btn btn-grn" onclick="saveUrl()">Сохранить ссылку</button>
         </div>
@@ -340,16 +508,16 @@
     <div class="nav">
         <button id="n-cases" onclick="showSec('cases')" class="act"><span>📦</span>Кейсы</button>
         <button id="n-inventory" onclick="showSec('inventory')"><span>🎒</span>Скины</button>
-        <button id="n-tasks" onclick="showSec('tasks')"><span>📋</span>Друзья</button>
+        <button id="n-upgrades" onclick="showSec('upgrades')"><span>⬆️</span>Апгрейд</button>
+        <button id="n-tasks" onclick="showSec('tasks')"><span>📋</span>Задания</button>
         <button id="n-profile" onclick="showSec('profile')"><span>👤</span>Профиль</button>
     </div>
 
     <script>
-        const tg = window.Telegram.WebApp;
-        tg.expand();
+        const tg = window.Telegram.WebApp; tg.expand();
         const iUrl = "https://steamcommunity-a.akamaihd.net/economy/image/";
 
-        // --- БАЗА КЕЙСОВ И СКИНОВ ---
+        // ⚠️ ВСТАВЬ СЮДА СВОЮ БАЗУ КЕЙСОВ И СКИНОВ (которую мы собрали в прошлый раз на 16 штук) ⚠️
         const db = {
             // 1. ЭКО КЕЙС (Окуп 30%. Цена: 50. 26 дешевых, 1 редкий)
             eco: [
@@ -913,9 +1081,9 @@
                 { name: 'AWP | История о драконе', rarity: 'gold', price: 15000, w: 2, img: iUrl + '-9a81dlWLwJ2UUGcVs_nsVtzdOEdtWwKGZZLQHTxDZ7I56KU0Zwwo4NUX4oFJZEHLbXH5ApeO4YmlhxYQknCRvCo04DEVlxkKgpot621FAR17PLfYQJD_9W7m5a0mvLwOq7c2D4G65xz0-2ZpNmti1fl_xVva1qwclc8cApvMInmDQa2yO_m0ZTtutjMmHVg7HYr-z-DyI4jCxsS' },
                 { name: 'M4A4 | Вой', rarity: 'gold', price: 20000, w: 1, img: iUrl + '-9a81dlWLwJ2UUGcVs_nsVtzdOEdtWwKGZZLQHTxDZ7I56KU0Zwwo4NUX4oFJZEHLbXH5ApeO4YmlhxYQknCRvCo04DEVlxkKgpou-6kejhz2v_Nfz5H_uO1gb-Gw_alIITfn2xZ_Ishi-TOyoD8j1yg-RE_Y2-gdYTHdlRvMFiE-APqxOu805Hu6pzByCAx7CMg-z-DyG2q8QvP' }
             ]
-        }; // БАЗА КЕЙСОВ И СКИНОВ ЗАКОНЧЕНА!
+        };
 
-        // --- ГЕНЕРАТОР КАРТОЧЕК НА ГЛАВНОЙ СТРАНИЦЕ ---
+        // --- ГЕНЕРАТОР КАРТОЧЕК ---
         const casesConfig = [
             { id: 'eco', name: 'Эко Кейс', price: 50, img: 'https://placehold.co/100x80/1e293b/FFF?text=ECO' },
             { id: 'normal', name: 'Обычный', price: 250, img: 'https://placehold.co/100x80/1e293b/FFF?text=NORMAL' },
@@ -935,37 +1103,32 @@
             { id: 'admin_choice', name: 'Выбор Админа', price: 1500, img: 'https://placehold.co/100x80/1e293b/FFF?text=ADMIN' }
         ];
 
-        // Отрисовка кейсов в меню
         const grid = document.getElementById('casesGrid');
         casesConfig.forEach(c => {
             grid.innerHTML += `<div class="card"><img src="${c.img}"><h4>${c.name}</h4><p style="color:var(--ylw);font-weight:bold;margin-top:0;">★ ${c.price}</p><button class="btn" onclick="openPrev('${c.id}', ${c.price}, '${c.name}')">Открыть</button></div>`;
         });
-        // --- ЛОГИКА ПРИЛОЖЕНИЯ (СОХРАНЕНИЕ, РУЛЕТКА, ИНВЕНТАРЬ) ---
-        let bal = 0, inv = [], tUrl = '', spn = 0;
-        let cCase = '', cPrice = 0;
-        let droppedItem = null;
 
-        // Сохранение в облако Телеграма
+        // --- ЛОГИКА ПРИЛОЖЕНИЯ ---
+        let bal = 0, inv = [], tUrl = '', spn = 0, lastDaily = 0, subDone = false;
+        let cCase = '', cPrice = 0, droppedItem = null;
+        let uIn = null, uIx = -1, uTg = null, uCh = 0, upg = 0;
+
         function save() {
-            tg.CloudStorage.setItem('ld_data', JSON.stringify({ b: bal, i: inv, t: tUrl }));
+            tg.CloudStorage.setItem('ld_data', JSON.stringify({ b: bal, i: inv, t: tUrl, d: lastDaily, s: subDone }));
             document.getElementById('stars').innerText = bal;
         }
 
-        // Загрузка при входе
         function load() {
             tg.CloudStorage.getItem('ld_data', (e, v) => {
-                if (v) { const d = JSON.parse(v); bal = d.b || 0; inv = d.i || []; tUrl = d.t || ''; }
+                if (v) { const d = JSON.parse(v); bal = d.b || 0; inv = d.i || []; tUrl = d.t || ''; lastDaily = d.d || 0; subDone = d.s || false; }
                 document.getElementById('tUrl').value = tUrl;
-
-                // Генерируем реф-ссылку по ID юзера
                 const uid = tg.initDataUnsafe.user ? tg.initDataUnsafe.user.id : 'guest';
                 document.getElementById('refLink').value = `https://t.me/LuckyCsDrop_bot?start=${uid}`;
-
                 document.getElementById('stars').innerText = bal;
+                updTasks();
             });
         }
 
-        // Переключение вкладок меню
         function showSec(id) {
             document.querySelectorAll('.sec').forEach(e => e.classList.add('hidden'));
             document.getElementById('previewArea').classList.add('hidden');
@@ -973,130 +1136,126 @@
             document.querySelectorAll('.nav button').forEach(e => e.classList.remove('act'));
             document.getElementById('n-' + id).classList.add('act');
             if (id === 'inventory') rInv();
+            if (id === 'tasks') updTasks();
+            if (id === 'upgrades') rUpg();
         }
 
-        // Открытие превью кейса
+        function updTasks() {
+            const now = Date.now(), dBtn = document.getElementById('dailyBtn'), sBtn = document.getElementById('subBtn');
+            if (now - lastDaily < 86400000) { dBtn.disabled = true; dBtn.innerText = 'Завтра приходи'; } else { dBtn.disabled = false; dBtn.innerText = 'Забрать 250 ★'; }
+            if (subDone) { sBtn.disabled = true; sBtn.innerText = 'Выполнено'; }
+        }
+
+        function claimDaily() { bal += 250; lastDaily = Date.now(); save(); updTasks(); tg.HapticFeedback.notificationOccurred('success'); tg.showAlert('+250 ★!'); }
+        function claimSub() { tg.openTelegramLink('https://t.me/speedytge'); setTimeout(() => { if (!subDone) { bal += 500; subDone = true; save(); updTasks(); tg.HapticFeedback.notificationOccurred('success'); tg.showAlert('+500 ★!'); } }, 3000); }
+        function copyRef() { navigator.clipboard.writeText(document.getElementById('refLink').value); tg.showAlert('Ссылка скопирована!'); }
+
         function openPrev(c, p, t) {
             cCase = c; cPrice = p;
             document.querySelectorAll('.sec').forEach(e => e.classList.add('hidden'));
             document.getElementById('pTitle').innerText = t;
-
             let l = document.getElementById('pList'); l.innerHTML = '';
-
-            // Считаем общий вес для процентов
             let tw = db[c].reduce((s, i) => s + i.w, 0);
-
-            // Выводим скины, сортируя от дешевых к дорогим
             [...db[c]].sort((a, b) => a.price - b.price).forEach(i => {
-                let ch = ((i.w / tw) * 100).toFixed(2); // Процент выпадения
+                let ch = ((i.w / tw) * 100).toFixed(2);
                 l.innerHTML += `<div style="display:flex;align-items:center;padding:10px;border-bottom:1px solid rgba(255,255,255,0.1);font-size:12px;" class="${i.rarity}"><img src="${i.img}" style="width:40px;height:30px;object-fit:contain;margin-right:10px"><span style="flex-grow:1">${i.name}<br><b style="color:var(--ylw)">★ ${i.price}</b></span><b>${ch}%</b></div>`;
             });
-
-            document.getElementById('rouletteArea').classList.add('hidden');
-            document.getElementById('resArea').classList.add('hidden');
-            document.getElementById('openControls').classList.remove('hidden');
-            document.getElementById('previewArea').classList.remove('hidden');
+            document.getElementById('rouletteArea').classList.add('hidden'); document.getElementById('resArea').classList.add('hidden');
+            document.getElementById('openControls').classList.remove('hidden'); document.getElementById('previewArea').classList.remove('hidden');
             document.getElementById('spinBtn').innerText = `КРУТИТЬ ЗА ★ ${cPrice}`;
         }
 
-        // Прокрутка рулетки
         function startRoulette() {
-            if (spn || bal < cPrice) {
-                if (bal < cPrice) tg.showAlert('Недостаточно звезд! Пополни баланс в Профиле.');
-                return;
-            }
-
-            // Списываем баланс
-            bal -= cPrice;
-            spn = 1;
-            save();
-
-            document.getElementById('openControls').classList.add('hidden');
-            document.getElementById('resArea').classList.add('hidden');
-            let rl = document.getElementById('rlLine');
-            document.getElementById('rouletteArea').classList.remove('hidden');
-
-            rl.style.transition = 'none';
-            rl.style.transform = 'translateX(0)';
-            rl.innerHTML = '';
-
-            // Выбор скина с учетом ВЕСОВ (математика жесткого минуса)
-            let tw = db[cCase].reduce((s, i) => s + i.w, 0);
-            let r = Math.random() * tw;
-            for (let it of db[cCase]) {
-                if (r < it.w) { droppedItem = it; break; }
-                r -= it.w;
-            }
-
-            // Генерируем фейковую ленту для анимации (50 скинов)
+            if (spn || bal < cPrice) { if (bal < cPrice) tg.showAlert('Мало звезд!'); return; }
+            bal -= cPrice; spn = 1; save();
+            document.getElementById('openControls').classList.add('hidden'); document.getElementById('resArea').classList.add('hidden');
+            let rl = document.getElementById('rlLine'); document.getElementById('rouletteArea').classList.remove('hidden');
+            rl.style.transition = 'none'; rl.style.transform = 'translateX(0)'; rl.innerHTML = '';
+            let tw = db[cCase].reduce((s, i) => s + i.w, 0), r = Math.random() * tw;
+            for (let it of db[cCase]) { if (r < it.w) { droppedItem = it; break; } r -= it.w; }
             let vi = [];
             for (let i = 0; i < 50; i++) vi.push(db[cCase][Math.floor(Math.random() * db[cCase].length)]);
-            vi[40] = droppedItem; // Выигрышный скин всегда на 40 позиции
-
+            vi[40] = droppedItem;
             vi.forEach(i => rl.innerHTML += `<div class="rl-item ${i.rarity}"><img src="${i.img}"><div style="font-size:9px;text-align:center;width:100%;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">${i.name}</div></div>`);
-
-            // Запускаем анимацию
+            setTimeout(() => { rl.style.transition = 'transform 4s cubic-bezier(0.1,0.8,0.2,1)'; rl.style.transform = `translateX(-${40 * 100 - window.innerWidth / 2 + 50}px)`; }, 50);
             setTimeout(() => {
-                rl.style.transition = 'transform 4s cubic-bezier(0.1,0.8,0.2,1)';
-                rl.style.transform = `translateX(-${40 * 100 - window.innerWidth / 2 + 50}px)`;
-            }, 50);
-
-            // Конец анимации, показываем результат
-            setTimeout(() => {
-                inv.push(droppedItem); // Добавляем в инвентарь
-                save();
-                spn = 0;
-                tg.HapticFeedback.notificationOccurred('success');
-
-                document.getElementById('rouletteArea').classList.add('hidden');
-                document.getElementById('resArea').classList.remove('hidden');
-
-                let grid = document.getElementById('resGrid');
-                grid.innerHTML = `<div style="background:rgba(30,41,59,0.9);padding:5px;border-radius:8px;border:1px solid gray;text-align:center;width:80px;" class="${droppedItem.rarity}"><img src="${droppedItem.img}" style="width:100%;height:40px;object-fit:contain"><div style="font-size:8px;overflow:hidden;white-space:nowrap;text-overflow:ellipsis;">${droppedItem.name}</div></div>`;
-
-                document.getElementById('wPriceTotal').innerText = droppedItem.price;
-                document.getElementById('sellDropBtn').innerText = `Продать за ★ ${droppedItem.price}`;
+                inv.push(droppedItem); save(); spn = 0; tg.HapticFeedback.notificationOccurred('success');
+                document.getElementById('rouletteArea').classList.add('hidden'); document.getElementById('resArea').classList.remove('hidden');
+                document.getElementById('resGrid').innerHTML = `<div style="background:rgba(30,41,59,0.9);padding:5px;border-radius:8px;border:1px solid gray;text-align:center;width:80px;" class="${droppedItem.rarity}"><img src="${droppedItem.img}" style="width:100%;height:40px;object-fit:contain"><div style="font-size:8px;overflow:hidden;white-space:nowrap;text-overflow:ellipsis;">${droppedItem.name}</div></div>`;
+                document.getElementById('wPriceTotal').innerText = droppedItem.price; document.getElementById('sellDropBtn').innerText = `Продать за ★ ${droppedItem.price}`;
             }, 4050);
         }
 
-        // Продажа сразу после выпадения
-        function sellCurrentDrop() {
-            bal += droppedItem.price;
-            inv.pop(); // Удаляем последний добавленный предмет
-            save();
-            tg.HapticFeedback.notificationOccurred('success');
-            showSec('cases');
-        }
+        function sellCurrentDrop() { bal += droppedItem.price; inv.pop(); save(); tg.HapticFeedback.notificationOccurred('success'); showSec('cases'); }
 
-        // Отрисовка инвентаря
         function rInv() {
             let g = document.getElementById('iGrid'); g.innerHTML = '';
-            if (inv.length === 0) { g.innerHTML = '<p style="grid-column:span 2;text-align:center;color:gray">Пусто. Открой кейс!</p>'; return; }
-
+            if (inv.length === 0) { g.innerHTML = '<p style="grid-column:span 2;text-align:center;color:gray">Пусто.</p>'; return; }
             [...inv].sort((a, b) => b.price - a.price).forEach((i) => {
                 let rx = inv.findIndex(x => x === i);
                 g.innerHTML += `<div class="card ${i.rarity}"><img src="${i.img}"><div style="font-size:11px;height:30px;overflow:hidden">${i.name}</div><b style="color:var(--ylw)">★ ${i.price}</b><div style="display:flex;gap:5px;margin-top:5px"><button class="btn btn-grn" style="padding:6px;font-size:10px;margin:0" onclick="inv.splice(${rx},1);bal+=${i.price};save();rInv();tg.HapticFeedback.notificationOccurred('success')">Продать</button><button class="btn btn-out" style="padding:6px;font-size:10px;margin:0" onclick="wd(${rx})">Вывод</button></div></div>`;
             });
         }
 
-        // Функции профиля и вывода (Сигналы в Python-бота)
-        function saveUrl() { tUrl = document.getElementById('tUrl').value; save(); tg.showAlert('Ссылка сохранена!'); }
+        // --- ЛОГИКА АПГРЕЙДА ---
+        function selU(t, i, x) {
+            document.getElementById('uRes').innerText = '';
+            if (t === 'l') {
+                uIn = i; uIx = x;
+                document.getElementById('uL').innerHTML = `<img src="${i.img}"><br>${i.name.split('|')[0]}`; document.getElementById('uL').className = `upg-slot ${i.rarity}`;
+                if (uTg && uTg.price <= uIn.price) clrU('r');
+                rUpg();
+            } else {
+                if (uIn && i.price <= uIn.price) { tg.showAlert('Выбирай скин дороже твоего!'); return; }
+                uTg = i;
+                document.getElementById('uR').innerHTML = `<img src="${i.img}"><br>${i.name.split('|')[0]}`; document.getElementById('uR').className = `upg-slot ${i.rarity}`;
+            }
+            calcU();
+        }
+        function clrU(s) {
+            if (s === 'l') { uIn = null; uIx = -1; document.getElementById('uL').innerHTML = '<span style="color:var(--gry);">Отдаем</span>'; document.getElementById('uL').className = 'upg-slot'; rUpg(); }
+            else { uTg = null; document.getElementById('uR').innerHTML = '<span style="color:var(--gry);">Получаем</span>'; document.getElementById('uR').className = 'upg-slot'; }
+            calcU();
+        }
+        function calcU() {
+            let p = document.getElementById('uPtr'); p.style.transition = 'none'; p.style.transform = 'rotate(0)';
+            if (!uIn || !uTg) { uCh = 0; document.getElementById('uTxt').innerText = '0%'; document.getElementById('uCc').style.background = 'conic-gradient(var(--ylw) 0%,#222 0%)'; return }
+            uCh = Math.min((uIn.price / uTg.price) * 100, 100);
+            document.getElementById('uTxt').innerText = uCh.toFixed(1) + '%'; document.getElementById('uCc').style.background = `conic-gradient(var(--ylw) ${uCh}%,#222 0%)`;
+        }
+        function doUpg() {
+            if (upg) return; if (!uIn || !uTg) return tg.showAlert('Выбери скины!');
+            upg = 1; document.getElementById('uRes').innerText = 'КРУТИМ...'; document.getElementById('uRes').style.color = '#fff';
+            inv.splice(uIx, 1); save();
+            let r = Math.random() * 100, win = r <= uCh, deg = uCh * 3.6, td = win ? (Math.random() * (deg - 2) + 1) : (deg + Math.random() * (360 - deg - 2) + 1);
+            let p = document.getElementById('uPtr'); p.style.transition = 'transform 3.5s cubic-bezier(0.1,0.8,0.2,1)'; p.style.transform = `rotate(${360 * 5 + td}deg)`;
+            setTimeout(() => {
+                if (win) { inv.push(uTg); document.getElementById('uRes').style.color = '#10b981'; document.getElementById('uRes').innerText = 'УСПЕШНО!'; tg.HapticFeedback.notificationOccurred('success') }
+                else { document.getElementById('uRes').style.color = '#ef4444'; document.getElementById('uRes').innerText = 'СГОРЕЛ...'; tg.HapticFeedback.notificationOccurred('error') }
+                save(); clrU('l'); rUpg(); upg = 0;
+            }, 3550);
+        }
+        function rUpg() {
+            let l = document.getElementById('uInv'); l.innerHTML = '';
+            inv.forEach((i, x) => { l.innerHTML += `<div class="u-item ${i.rarity}" onclick="if(!upg)selU('l',inv[${x}],${x})"><img src="${i.img}" style="width:30px;height:20px;object-fit:contain"><span style="flex-grow:1;margin-left:5px;overflow:hidden;white-space:nowrap;text-overflow:ellipsis;">${i.name}</span><b style="color:var(--ylw)">★${i.price}</b></div>` });
+            let t = document.getElementById('uTrg'); t.innerHTML = '';
 
-        function buy(amount, price) {
-            tg.sendData(JSON.stringify({ action: 'buy', amount: amount, price: price }));
+            // Собираем ВСЕ скины из твоей базы db, чтобы апгрейд мог искать любой предмет
+            let all = []; for (let key in db) { all = all.concat(db[key]); }
+            all = all.sort((a, b) => a.price - b.price).filter((v, i, a) => a.findIndex(x => x.name === v.name) === i);
+
+            let targets = all.filter(item => !uIn || item.price > uIn.price);
+            targets.forEach((i, x) => { t.innerHTML += `<div class="u-item ${i.rarity}" onclick="if(!upg)selU('r',{name:'${i.name}', rarity:'${i.rarity}', price:${i.price}, img:'${i.img}'},0)"><img src="${i.img}" style="width:30px;height:20px;object-fit:contain"><span style="flex-grow:1;margin-left:5px;overflow:hidden;white-space:nowrap;text-overflow:ellipsis;">${i.name}</span><b style="color:var(--ylw)">★${i.price}</b></div>` });
         }
 
+        function saveUrl() { tUrl = document.getElementById('tUrl').value; save(); tg.showAlert('Ссылка сохранена!'); }
+        function buy(amount, price) { tg.sendData(JSON.stringify({ action: 'buy', amount: amount, price: price })); }
         function wd(index) {
             if (!tUrl || (!tUrl.includes('steamcommunity') && !tUrl.includes('steam://'))) return tg.showAlert('Укажите Trade URL в Профиле!');
             tg.sendData(JSON.stringify({ action: 'withdraw', item: inv[index].name, url: tUrl }));
-            inv.splice(index, 1);
-            save();
-            rInv();
+            inv.splice(index, 1); save(); rInv();
         }
 
-        function copyRef() { navigator.clipboard.writeText(document.getElementById('refLink').value); tg.showAlert('Ссылка скопирована!'); }
-
-        // Запуск при старте
         load();
     </script>
 </body>
